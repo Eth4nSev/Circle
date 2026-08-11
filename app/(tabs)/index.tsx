@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import * as Haptics from 'expo-haptics';
+import { Pressable, Text, View } from "react-native";
 
 export default function Index() {
   return (
@@ -9,7 +10,17 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>Home Screen</Text>
+      <Pressable onPress={() => Haptics.selectionAsync()} style={{
+        paddingHorizontal: 25,
+        paddingVertical: 10,
+        backgroundColor: '#17b3da',
+        borderRadius: 30,
+      }}>
+        <Text style={{
+          fontSize: 24,
+          color: '#fff',
+        }}>Haptic Press</Text>
+      </Pressable>
     </View>
   );
 }
