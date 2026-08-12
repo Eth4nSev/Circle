@@ -1,5 +1,5 @@
 import PostContainer from "@/components/post";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function Index() {
   return (
@@ -14,3 +14,9 @@ export default function Index() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
+});

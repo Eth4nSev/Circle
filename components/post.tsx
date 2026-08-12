@@ -2,7 +2,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { Image, StyleSheet, View } from "react-native";
 
-export default function PostContainer() {
+const iconSize: number = 24;
+
+export default function PostContainer({ iconSize }: { iconSize: number }) {
   return (
     <GlassView style={styles.postContainer}>
       <Image
@@ -10,9 +12,16 @@ export default function PostContainer() {
         style={styles.postImage}
       />
       <View style={styles.postOptions}>
-        <MaterialIcons name="thumb-up-off-alt" size={20} color={"#000"} />
-        <MaterialIcons name="chat-bubble-outline" size={20} color={"#000"} />
-        <MaterialIcons name="" size={20} color={"#000"} />
+        <MaterialIcons name="thumb-up-off-alt" size={iconSize} color={"#000"} />
+        <MaterialIcons
+          name="chat-bubble-outline"
+          size={iconSize}
+          color={"#000"}
+        />
+        <MaterialIcons name="face" size={iconSize} color={"#000"} />
+        <View style={styles.morePostOptions}>
+          <MaterialIcons name="more-horiz" size={iconSize} color={"#000"} />
+        </View>
       </View>
     </GlassView>
   );
@@ -30,5 +39,13 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     borderRadius: 5,
   },
-  postOptions: {},
+  postOptions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 10,
+  },
+  morePostOptions: {
+    position: "absolute",
+    right: 0,
+  },
 });
