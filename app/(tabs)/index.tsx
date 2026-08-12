@@ -1,18 +1,38 @@
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { GlassView } from "expo-glass-effect";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, useColorScheme } from "react-native";
+import { supabase } from "../utils/supabase";
 
 export default function Index() {
 	const theme = useColorScheme() ?? "light";
+	const [posts, setPosts] = useState<any[]>([]);
+
+	useEffect(() => {
+		async function getPosts() {
+			const { data, error } = await supabase.from("posts").select("*");
+
+			if (error) {
+				console.error("Error fetching posts:", error);
+				return;
+			}
+
+			setPosts(data);
+		}
+
+		getPosts();
+	}, []);
 
 	return (
 		<ScrollView
 			style={{ backgroundColor: Colors[theme].background, flex: 1 }}
+			contentInsetAdjustmentBehavior="automatic"
 		>
 			<GlassView
 				style={{
 					width: 100,
+					height: 40,
 					paddingVertical: 5,
 					justifyContent: "center",
 					alignItems: "center",
@@ -31,13 +51,18 @@ export default function Index() {
 					Home
 				</Text>
 			</GlassView>
-			<PostContainer
-				href={require("@/assets/images/kitty.jpg")}
-				time="Now"
-				author="Admin"
-				pfp={require("@/assets/images/admin.png")}
-				caption="Kitty"
-			/>
+			{
+				posts.map((post) => (
+					<PostContainer
+						key={post.id}
+						href={require("@/assets/images/kitty.jpg")}
+						time={post.created_at}
+						author={post.author}
+						pfp={require("@/assets/images/admin.png")}
+						caption={post.caption}
+					/>
+				))
+			}
 			<PostContainer
 				href={require("@/assets/images/circle.png")}
 				time="5 minutes ago"
@@ -45,6 +70,6 @@ export default function Index() {
 				pfp={require("@/assets/images/pfp.png")}
 				caption="We are here"
 			/>
-		</ScrollView>
+		</ScrollView >
 	);
 }
