@@ -1,31 +1,45 @@
 import PostContainer from "@/components/post";
+import { useEffect, useState } from "react";
 import { ImageBackground, ScrollView, useColorScheme } from "react-native";
+import { supabase } from "../utils/supabase";
 
 export default function Index() {
-  const theme = useColorScheme() ?? "light";
+	const theme = useColorScheme() ?? "light";
+	const [posts, setPosts] = useState<any[]>([]);
 
-  return (
-    <ImageBackground
-      source={require("@/assets/images/wallpaper.jpg")}
-      resizeMode="cover"
-      style={{ flex: 1 }}
-    >
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <PostContainer
-          href={require("@/assets/images/kitty.jpg")}
-          time="Now"
-          author="Admin"
-          pfp={require("@/assets/images/admin.png")}
-          caption="Kitty"
-        />
-        <PostContainer
-          href={require("@/assets/images/circle.png")}
-          time="5 minutes ago"
-          author="Eth4nSev"
-          pfp={require("@/assets/images/pfp.png")}
-          caption="We are here"
-        />
-      </ScrollView>
-    </ImageBackground>
-  );
+	useEffect(() => {
+		async function getPosts() {
+			const { data, error } = await supabase.from("posts").select("*");
+
+			if (error) {
+				console.error("Error fetching posts:", error);
+				return;
+			}
+
+			setPosts(data);
+		}
+
+		getPosts();
+	}, []);
+
+	return (
+		<ImageBackground
+			source={require("@/assets/images/wallpaper.jpg")}
+			resizeMode="cover"
+			style={{ flex: 1 }}
+		>
+			<ScrollView contentInsetAdjustmentBehavior="automatic">
+				{posts.map((post) => (
+					<PostContainer
+						key={post.id}
+						href={{ uri: post.image }}
+						time={post.created_at}
+						author={post.author}
+						pfp={{ uri: post.pfp }}
+						caption={post.caption}
+					/>
+				))}
+			</ScrollView>
+		</ImageBackground>
+	);
 }

@@ -1,21 +1,22 @@
 import { Colors } from "@/styles/colors";
 import {
-  Entypo,
-  FontAwesome,
-  Ionicons,
-  MaterialIcons,
+	Entypo,
+	FontAwesome,
+	Ionicons,
+	MaterialIcons,
 } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
-import { useState } from "react";
+import { Link } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  Image,
-  ImageSourcePropType,
-  Pressable,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
+	Image,
+	ImageSourcePropType,
+	Pressable,
+	StyleSheet,
+	Text,
+	useColorScheme,
+	View,
 } from "react-native";
 
 const iconSize: number = 30;
@@ -37,9 +38,35 @@ export default function PostContainer({
 }: props) {
 	const theme = useColorScheme() ?? "light";
 	const postImageSource = href;
-	const postImageAspectRatio =
-		Image.resolveAssetSource(postImageSource).width /
-		Image.resolveAssetSource(postImageSource).height;
+	const [postImageAspectRatio, setPostImageAspectRatio] = useState(1);
+
+	useEffect(() => {
+		if (typeof postImageSource === "number") {
+			const source = Image.resolveAssetSource(postImageSource);
+
+			if (source) {
+				setPostImageAspectRatio(source.width / source.height);
+			}
+
+			return;
+		}
+
+		if (
+			typeof postImageSource === "object" &&
+			"uri" in postImageSource &&
+			postImageSource.uri
+		) {
+			Image.getSize(
+				postImageSource.uri,
+				(width, height) => {
+					setPostImageAspectRatio(width / height);
+				},
+				() => {
+					setPostImageAspectRatio(1);
+				},
+			);
+		}
+	}, [postImageSource]);
 	const [isLiked, notLiked] = useState(false);
 
 	const likePost = async () => {
@@ -117,11 +144,13 @@ export default function PostContainer({
 					size={iconSize}
 					color={Colors[theme].text}
 				/>
-				<Entypo
-					name="emoji-happy"
-					size={iconSize}
-					color={Colors[theme].text}
-				/>
+				<Link href={"/modal"} asChild>
+					<Entypo
+						name="emoji-happy"
+						size={iconSize}
+						color={Colors[theme].text}
+					/>
+				</Link>
 				<View style={styles.morePostOptions}>
 					<MaterialIcons
 						name="more-horiz"
