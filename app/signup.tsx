@@ -56,7 +56,7 @@ export default function SignUp() {
 			return;
 		}
 
-		router.push("/profileSetup");
+		router.push("./profileSetup");
 	};
 
 	return (
@@ -136,7 +136,10 @@ export default function SignUp() {
 								Already have an account?
 							</Text>
 
-							<Pressable onPress={() => router.back()}>
+							<Pressable onPress={async () => {
+								await Haptics.selectionAsync();
+								router.back();
+							}}>
 								<Text style={styles.loginLink}> Log In</Text>
 							</Pressable>
 						</View>

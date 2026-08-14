@@ -1,9 +1,8 @@
 import { Colors } from "@/styles/colors";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { router, Stack, useSegments } from "expo-router";
-import { useEffect, useState } from "react";
+import { Stack, useSegments } from "expo-router";
+import { useState } from "react";
 import { useColorScheme } from "react-native";
-import { supabase } from "./utils/supabase";
 
 export default function RootLayout() {
 	const theme = useColorScheme() ?? "light";
@@ -12,7 +11,7 @@ export default function RootLayout() {
 	const [loading, setLoading] = useState(true);
 	const [profileComplete, setProfileComplete] = useState(false);
 
-	useEffect(() => {
+	/* useEffect(() => {
 		const getSession = async () => {
 			const { data } = await supabase.auth.getSession();
 
@@ -61,7 +60,7 @@ export default function RootLayout() {
 
 		const inAuthGroup = segments[0] === "login" || segments[0] === "signup";
 
-		const inProfileSetup = segments[0] === "profileSetup";
+		//const inProfileSetup = segments[0] === "profileSetup";
 
 		if (!session) {
 			if (!inAuthGroup) {
@@ -73,16 +72,16 @@ export default function RootLayout() {
 
 		if (!profileComplete) {
 			if (!inProfileSetup) {
-				router.replace("/profileSetup");
+				router.replace("./profileSetup");
 			}
 
 			return;
 		}
 
-		if (inAuthGroup || inProfileSetup) {
+		if (inAuthGroup  || inProfileSetup ) {
 			router.replace("/");
 		}
-	}, [session, profileComplete, loading, segments]);
+	}, [session, profileComplete, loading, segments]); */
 
 	return (
 		<Stack screenOptions={{ headerShown: false }}>

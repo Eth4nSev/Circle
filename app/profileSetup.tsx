@@ -6,20 +6,20 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    ImageBackground,
-    Keyboard,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View,
+	Alert,
+	ImageBackground,
+	Keyboard,
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableWithoutFeedback,
+	useColorScheme,
+	View,
 } from "react-native";
 import { supabase } from "./utils/supabase";
 
-export default function ProfileSetup() {
+export default function profileSetup() {
 	const theme = useColorScheme() ?? "light";
 	const textColor = Colors[theme].text;
 

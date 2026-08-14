@@ -123,7 +123,10 @@ export default function LogIn() {
 								Don't have an account?
 							</Text>
 
-							<Pressable onPress={() => router.push("/signup")}>
+							<Pressable onPress={async () => {
+								await Haptics.selectionAsync();
+								router.push("/signup")
+							}}>
 								<Text style={styles.signupLink}> Sign Up</Text>
 							</Pressable>
 						</View>

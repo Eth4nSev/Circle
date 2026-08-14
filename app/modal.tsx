@@ -18,7 +18,7 @@ export default function modal() {
           marginVertical: 30,
         }}
       >
-        Hello There
+        Select an Emoji
       </Text>
     </View>
   );
