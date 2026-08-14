@@ -2,15 +2,17 @@ import Separator from "@/components/separator";
 import SignUpInput from "@/components/signUpInput";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics';
 import { router } from "expo-router";
 import {
-    Keyboard,
-    Pressable,
-    StyleSheet,
-    Text,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View,
+	ImageBackground,
+	Keyboard,
+	Pressable,
+	StyleSheet,
+	Text,
+	TouchableWithoutFeedback,
+	useColorScheme,
+	View
 } from "react-native";
 
 export default function SignUp() {
@@ -18,81 +20,97 @@ export default function SignUp() {
 
 	const textColor = Colors[theme].text;
 	const modalBackground = Colors[theme].loginModal;
+	const backgroundImage =
+		theme === "dark"
+			? require("@/assets/images/loginbackground-dark.png")
+			: require("@/assets/images/loginbackground-light.png");
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<View
-				style={[styles.overlay, { backgroundColor: modalBackground }]}
+			<ImageBackground
+				source={backgroundImage}
+				resizeMode="cover"
+				style={styles.background}
 			>
-				<View style={styles.container}>
-					<Text style={[styles.title, { color: textColor }]}>
-						Create your account
-					</Text>
-
-					<Text style={[styles.subtitle, { color: textColor }]}>
-						Join Circle and start connecting
-					</Text>
-
-					<Pressable
-						style={[styles.appleButton, { borderColor: textColor }]}
-					>
-						<Ionicons name="logo-apple" size={21} color="#fff" />
-
-						<Text style={styles.appleText}>
-							Continue with Apple
-						</Text>
-					</Pressable>
-
-					<View style={styles.separatorContainer}>
-						<Separator />
-
-						<Text style={[styles.orText, { color: textColor }]}>
-							or
+				<View
+					style={[styles.overlay]}
+				>
+					<View style={styles.container}>
+						<Text style={[styles.title, { color: textColor }]}>
+							Create your account
 						</Text>
 
-						<Separator />
-					</View>
-
-					<SignUpInput />
-
-					<Pressable style={styles.signupButton}>
-						<Text style={styles.signupButtonText}>
-							Create Account
-						</Text>
-					</Pressable>
-
-					<Text style={[styles.terms, { color: textColor }]}>
-						By creating an account, you agree to Circle's Terms of
-						Service and Privacy Policy.
-					</Text>
-
-					<View style={styles.loginContainer}>
-						<Text style={[styles.loginText, { color: textColor }]}>
-							Already have an account?
+						<Text style={[styles.subtitle, { color: textColor }]}>
+							Join Circle and start connecting
 						</Text>
 
-						<Pressable onPress={() => router.back()}>
-							<Text style={styles.loginLink}> Log In</Text>
+						<Pressable
+							style={[styles.appleButton, { borderColor: textColor }]}
+						>
+							<Ionicons name="logo-apple" size={21} color="#fff" />
+
+							<Text style={styles.appleText}>
+								Continue with Apple
+							</Text>
 						</Pressable>
+
+						<View style={styles.separatorContainer}>
+							<Separator />
+
+							<Text style={[styles.orText, { color: textColor }]}>
+								or
+							</Text>
+
+							<Separator />
+						</View>
+
+						<SignUpInput />
+
+						<Pressable style={styles.signupButton} onPress={() => Haptics.selectionAsync()}>
+							<Text style={styles.signupButtonText}>
+								Create Account
+							</Text>
+						</Pressable>
+
+						<Text style={[styles.terms, { color: textColor }]}>
+							By creating an account, you agree to Circle's Terms of
+							Service and Privacy Policy.
+						</Text>
+
+						<View style={styles.loginContainer}>
+							<Text style={[styles.loginText, { color: textColor }]}>
+								Already have an account?
+							</Text>
+
+							<Pressable onPress={() => router.back()}>
+								<Text style={styles.loginLink}> Log In</Text>
+							</Pressable>
+						</View>
 					</View>
 				</View>
-			</View>
+			</ImageBackground>
 		</TouchableWithoutFeedback>
 	);
 }
 
 const styles = StyleSheet.create({
+	background: {
+		flex: 1,
+	},
+
 	overlay: {
 		flex: 1,
 		alignItems: "center",
 		paddingHorizontal: 24,
 		paddingTop: 50,
+		justifyContent: 'center',
 	},
 
 	container: {
 		width: "100%",
 		maxWidth: 420,
 		alignItems: "center",
+		marginBottom: 50,
 	},
 
 	title: {

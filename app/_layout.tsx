@@ -22,13 +22,15 @@ export default function RootLayout() {
 				}}
 			/>
 			<Stack.Screen
-				name="signup"
+				name="emoji-react"
 				options={{
 					presentation: "formSheet",
 					sheetGrabberVisible: true,
-					sheetAllowedDetents: [1],
+					sheetAllowedDetents: [0.15, 1],
 					contentStyle: {
-						backgroundColor: Colors[theme].loginModal,
+						backgroundColor: isLiquidGlassAvailable()
+							? "transparent"
+							: Colors[theme].background,
 					},
 				}}
 			/>

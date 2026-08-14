@@ -16,8 +16,8 @@ export default function SignUpInput() {
 					backgroundColor: Colors[theme].login,
 					borderColor:
 						theme === "dark"
-							? "rgba(255,255,255,0.15)"
-							: "rgba(0,0,0,0.12)",
+							? "#fff"
+							: "#000",
 				},
 			]}
 		>
@@ -26,7 +26,6 @@ export default function SignUpInput() {
 					styles.input,
 					{
 						color: Colors[theme].text,
-						backgroundColor: Colors[theme].card,
 					},
 				]}
 				placeholder="Email"
@@ -45,7 +44,6 @@ export default function SignUpInput() {
 					styles.input,
 					{
 						color: Colors[theme].text,
-						backgroundColor: Colors[theme].card,
 					},
 				]}
 				placeholder="Password"
@@ -64,7 +62,6 @@ export default function SignUpInput() {
 					styles.input,
 					{
 						color: Colors[theme].text,
-						backgroundColor: Colors[theme].card,
 					},
 				]}
 				placeholder="Confirm password"

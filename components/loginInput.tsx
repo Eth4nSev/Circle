@@ -13,8 +13,8 @@ export default function LoginInput() {
 					backgroundColor: Colors[theme].login,
 					borderColor:
 						theme === "dark"
-							? "rgba(255,255,255,0.15)"
-							: "rgba(0,0,0,0.12)",
+							? "#fff"
+							: "#000",
 				},
 			]}
 		>

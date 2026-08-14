@@ -2,16 +2,17 @@ import LoginInput from "@/components/loginInput";
 import Separator from "@/components/separator";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics';
 import { router } from "expo-router";
 import {
-    ImageBackground,
-    Keyboard,
-    Pressable,
-    StyleSheet,
-    Text,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View,
+	ImageBackground,
+	Keyboard,
+	Pressable,
+	StyleSheet,
+	Text,
+	TouchableWithoutFeedback,
+	useColorScheme,
+	View,
 } from "react-native";
 
 export default function LogIn() {
@@ -41,22 +42,23 @@ export default function LogIn() {
 							Log in to continue to Circle
 						</Text>
 
-						<View
-							style={[
-								styles.appleButton,
+						<Pressable style={styles.appleButton} onPress={() => Haptics.selectionAsync()}>
+							<View
+								style={[styles.innerAppleButton,
 								{ borderColor: Colors[theme].text },
-							]}
-						>
-							<Ionicons
-								name="logo-apple"
-								size={21}
-								color="#fff"
-							/>
+								]}
+							>
+								<Ionicons
+									name="logo-apple"
+									size={21}
+									color="#fff"
+								/>
 
-							<Text style={styles.appleText}>
-								Continue with Apple
-							</Text>
-						</View>
+								<Text style={styles.appleText}>
+									Continue with Apple
+								</Text>
+							</View>
+						</Pressable>
 
 						<View style={styles.separatorContainer}>
 							<Separator />
@@ -70,7 +72,7 @@ export default function LogIn() {
 							<LoginInput />
 						</View>
 
-						<Pressable style={styles.loginButton}>
+						<Pressable style={styles.loginButton} onPress={() => Haptics.selectionAsync()}>
 							<Text style={styles.loginText}>Log In</Text>
 						</Pressable>
 
@@ -136,13 +138,14 @@ const styles = StyleSheet.create({
 		height: 52,
 		borderRadius: 12,
 		backgroundColor: "#000",
-		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "center",
-		gap: 9,
 		borderWidth: StyleSheet.hairlineWidth,
 	},
-
+	innerAppleButton: {
+		flexDirection: "row",
+		gap: 9,
+	},
 	appleText: {
 		color: "#fff",
 		fontSize: 17,
