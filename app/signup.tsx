@@ -2,9 +2,11 @@ import Separator from "@/components/separator";
 import SignUpInput from "@/components/signUpInput";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from 'expo-haptics';
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
+import { useState } from "react";
 import {
+	Alert,
 	ImageBackground,
 	Keyboard,
 	Pressable,
@@ -12,8 +14,9 @@ import {
 	Text,
 	TouchableWithoutFeedback,
 	useColorScheme,
-	View
+	View,
 } from "react-native";
+import { supabase } from "./utils/supabase";
 
 export default function SignUp() {
 	const theme = useColorScheme() ?? "light";
@@ -25,6 +28,37 @@ export default function SignUp() {
 			? require("@/assets/images/loginbackground-dark.png")
 			: require("@/assets/images/loginbackground-light.png");
 
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+
+	const handleSignup = async () => {
+		if (!email || !password || !confirmPassword) {
+			Alert.alert("Missing information", "Please fill in all fields.");
+			return;
+		}
+
+		if (password !== confirmPassword) {
+			Alert.alert(
+				"Passwords don't match",
+				"Please make sure your passwords match.",
+			);
+			return;
+		}
+
+		const { error } = await supabase.auth.signUp({
+			email,
+			password,
+		});
+
+		if (error) {
+			Alert.alert("Signup failed", error.message);
+			return;
+		}
+
+		router.push("/profileSetup");
+	};
+
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<ImageBackground
@@ -32,9 +66,7 @@ export default function SignUp() {
 				resizeMode="cover"
 				style={styles.background}
 			>
-				<View
-					style={[styles.overlay]}
-				>
+				<View style={[styles.overlay]}>
 					<View style={styles.container}>
 						<Text style={[styles.title, { color: textColor }]}>
 							Create your account
@@ -45,9 +77,16 @@ export default function SignUp() {
 						</Text>
 
 						<Pressable
-							style={[styles.appleButton, { borderColor: textColor }]}
+							style={[
+								styles.appleButton,
+								{ borderColor: textColor },
+							]}
 						>
-							<Ionicons name="logo-apple" size={21} color="#fff" />
+							<Ionicons
+								name="logo-apple"
+								size={21}
+								color="#fff"
+							/>
 
 							<Text style={styles.appleText}>
 								Continue with Apple
@@ -64,21 +103,36 @@ export default function SignUp() {
 							<Separator />
 						</View>
 
-						<SignUpInput />
+						<SignUpInput
+							email={email}
+							password={password}
+							confirmPassword={confirmPassword}
+							setEmail={setEmail}
+							setPassword={setPassword}
+							setConfirmPassword={setConfirmPassword}
+						/>
 
-						<Pressable style={styles.signupButton} onPress={() => Haptics.selectionAsync()}>
+						<Pressable
+							style={styles.signupButton}
+							onPress={async () => {
+								await Haptics.selectionAsync();
+								await handleSignup();
+							}}
+						>
 							<Text style={styles.signupButtonText}>
 								Create Account
 							</Text>
 						</Pressable>
 
 						<Text style={[styles.terms, { color: textColor }]}>
-							By creating an account, you agree to Circle's Terms of
-							Service and Privacy Policy.
+							By creating an account, you agree to Circle's Terms
+							of Service and Privacy Policy.
 						</Text>
 
 						<View style={styles.loginContainer}>
-							<Text style={[styles.loginText, { color: textColor }]}>
+							<Text
+								style={[styles.loginText, { color: textColor }]}
+							>
 								Already have an account?
 							</Text>
 
@@ -103,7 +157,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		paddingHorizontal: 24,
 		paddingTop: 50,
-		justifyContent: 'center',
+		justifyContent: "center",
 	},
 
 	container: {

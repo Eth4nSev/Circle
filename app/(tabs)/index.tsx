@@ -1,9 +1,15 @@
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { GlassView } from "expo-glass-effect";
-import { router } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, useColorScheme } from "react-native";
+import {
+	Pressable,
+	ScrollView,
+	Text,
+	useColorScheme,
+	View,
+} from "react-native";
 import { supabase } from "../utils/supabase";
 
 export default function Index() {
@@ -30,31 +36,49 @@ export default function Index() {
 			style={{ backgroundColor: Colors[theme].background, flex: 1 }}
 			contentInsetAdjustmentBehavior="automatic"
 		>
-			<Pressable onPress={() => router.push("/login")}>
-				<Text style={{ color: Colors[theme].text }}>Login</Text>
-			</Pressable>
-			<GlassView
-				style={{
-					width: 100,
-					height: 40,
-					paddingVertical: 5,
-					justifyContent: "center",
-					alignItems: "center",
-					margin: 10,
-					borderRadius: 20,
-				}}
-				isInteractive
-			>
-				<Text
+			<View style={{ flexDirection: "row", alignItems: "center" }}>
+				<GlassView
 					style={{
-						color: Colors[theme].text,
-						fontWeight: "bold",
-						fontSize: 20,
+						width: 100,
+						height: 40,
+						paddingVertical: 5,
+						justifyContent: "center",
+						alignItems: "center",
+						margin: 10,
+						borderRadius: 20,
+					}}
+					isInteractive
+				>
+					<Text
+						style={{
+							color: Colors[theme].text,
+							fontWeight: "bold",
+							fontSize: 20,
+						}}
+					>
+						Home
+					</Text>
+				</GlassView>
+				<View
+					style={{
+						flexDirection: "row",
+						gap: 20,
+						position: "absolute",
+						right: 10,
 					}}
 				>
-					Home
-				</Text>
-			</GlassView>
+					<Pressable
+						onPress={async () => {
+							await Haptics.selectionAsync();
+							await supabase.auth.signOut();
+						}}
+					>
+						<Text style={{ color: Colors[theme].text }}>
+							Sign Out
+						</Text>
+					</Pressable>
+				</View>
+			</View>
 			{posts.map((post) => (
 				<PostContainer
 					key={post.id}

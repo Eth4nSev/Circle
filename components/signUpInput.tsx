@@ -2,7 +2,23 @@ import { Colors } from "@/styles/colors";
 import { StyleSheet, TextInput, useColorScheme, View } from "react-native";
 import Separator from "./separator";
 
-export default function SignUpInput() {
+type SignUpInputProps = {
+	email: string;
+	password: string;
+	confirmPassword: string;
+	setEmail: (value: string) => void;
+	setPassword: (value: string) => void;
+	setConfirmPassword: (value: string) => void;
+};
+
+export default function SignUpInput({
+	email,
+	password,
+	confirmPassword,
+	setEmail,
+	setPassword,
+	setConfirmPassword,
+}: SignUpInputProps) {
 	const theme = useColorScheme() ?? "light";
 
 	const placeholderColor =
@@ -14,22 +30,16 @@ export default function SignUpInput() {
 				styles.container,
 				{
 					backgroundColor: Colors[theme].login,
-					borderColor:
-						theme === "dark"
-							? "#fff"
-							: "#000",
+					borderColor: theme === "dark" ? "#fff" : "#000",
 				},
 			]}
 		>
 			<TextInput
-				style={[
-					styles.input,
-					{
-						color: Colors[theme].text,
-					},
-				]}
+				style={[styles.input, { color: Colors[theme].text }]}
 				placeholder="Email"
 				placeholderTextColor={placeholderColor}
+				value={email}
+				onChangeText={setEmail}
 				keyboardType="email-address"
 				autoComplete="email"
 				textContentType="emailAddress"
@@ -40,14 +50,11 @@ export default function SignUpInput() {
 			<Separator />
 
 			<TextInput
-				style={[
-					styles.input,
-					{
-						color: Colors[theme].text,
-					},
-				]}
+				style={[styles.input, { color: Colors[theme].text }]}
 				placeholder="Password"
 				placeholderTextColor={placeholderColor}
+				value={password}
+				onChangeText={setPassword}
 				autoComplete="new-password"
 				textContentType="newPassword"
 				secureTextEntry
@@ -58,14 +65,11 @@ export default function SignUpInput() {
 			<Separator />
 
 			<TextInput
-				style={[
-					styles.input,
-					{
-						color: Colors[theme].text,
-					},
-				]}
+				style={[styles.input, { color: Colors[theme].text }]}
 				placeholder="Confirm password"
 				placeholderTextColor={placeholderColor}
+				value={confirmPassword}
+				onChangeText={setConfirmPassword}
 				autoComplete="new-password"
 				textContentType="newPassword"
 				secureTextEntry

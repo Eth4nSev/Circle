@@ -2,8 +2,9 @@ import LoginInput from "@/components/loginInput";
 import Separator from "@/components/separator";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from 'expo-haptics';
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
+import { useState } from "react";
 import {
 	ImageBackground,
 	Keyboard,
@@ -14,9 +15,12 @@ import {
 	useColorScheme,
 	View,
 } from "react-native";
+import { supabase } from "./utils/supabase";
 
 export default function LogIn() {
 	const theme = useColorScheme() ?? "light";
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
 	const backgroundImage =
 		theme === "dark"
@@ -24,6 +28,20 @@ export default function LogIn() {
 			: require("@/assets/images/loginbackground-light.png");
 
 	const textColor = Colors[theme].text;
+
+	const handleLogin = async () => {
+		const { error } = await supabase.auth.signInWithPassword({
+			email,
+			password,
+		});
+
+		if (error) {
+			console.error("Login error:", error.message);
+			return;
+		}
+
+		router.replace("/");
+	};
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -42,12 +60,14 @@ export default function LogIn() {
 							Log in to continue to Circle
 						</Text>
 
-						<Pressable style={styles.appleButton} onPress={() => Haptics.selectionAsync()}>
-							<View
-								style={[styles.innerAppleButton,
+						<Pressable
+							style={[
+								styles.appleButton,
 								{ borderColor: Colors[theme].text },
-								]}
-							>
+							]}
+							onPress={() => Haptics.selectionAsync()}
+						>
+							<View style={styles.innerAppleButton}>
 								<Ionicons
 									name="logo-apple"
 									size={21}
@@ -69,10 +89,21 @@ export default function LogIn() {
 						</View>
 
 						<View style={styles.form}>
-							<LoginInput />
+							<LoginInput
+								email={email}
+								password={password}
+								setEmail={setEmail}
+								setPassword={setPassword}
+							/>
 						</View>
 
-						<Pressable style={styles.loginButton} onPress={() => Haptics.selectionAsync()}>
+						<Pressable
+							style={styles.loginButton}
+							onPress={async () => {
+								await Haptics.selectionAsync();
+								await handleLogin();
+							}}
+						>
 							<Text style={styles.loginText}>Log In</Text>
 						</Pressable>
 
