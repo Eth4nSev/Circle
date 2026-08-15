@@ -1,6 +1,7 @@
-import Separator from "@/components/separator";
+import ProfileSetupInput from "@/components/profileSetupInput";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -14,7 +15,6 @@ import {
 	Pressable,
 	StyleSheet,
 	Text,
-	TextInput,
 	TouchableWithoutFeedback,
 	useColorScheme,
 	View,
@@ -257,7 +257,11 @@ export default function profileSetup() {
 									/>
 								)}
 
-								<View style={styles.addButton}>
+								<GlassView
+									tintColor="#17b3da"
+									style={styles.addButton}
+									isInteractive
+								>
 									{isPickingImage ? (
 										<ActivityIndicator
 											size="small"
@@ -272,7 +276,7 @@ export default function profileSetup() {
 											color="#fff"
 										/>
 									)}
-								</View>
+								</GlassView>
 							</View>
 						</Pressable>
 
@@ -281,58 +285,20 @@ export default function profileSetup() {
 						</Text>
 
 						<View style={styles.form}>
-							<View
-								style={[
-									styles.inputContainer,
-									{
-										backgroundColor: Colors[theme].login,
-										borderColor:
-											theme === "dark"
-												? "rgba(255,255,255,0.15)"
-												: "rgba(0,0,0,0.12)",
-									},
-								]}
-							>
-								<TextInput
-									style={[styles.input, { color: textColor }]}
-									placeholder="Display name"
-									placeholderTextColor={
-										theme === "dark"
-											? "rgba(255,255,255,0.45)"
-											: "rgba(0,0,0,0.4)"
-									}
-									value={displayName}
-									onChangeText={(text) => {
-										setDisplayName(text);
-										generateUsername(text);
-									}}
-									autoCapitalize="words"
-									autoCorrect={false}
-								/>
-
-								<View style={styles.separator}>
-									<Separator />
-								</View>
-
-								<TextInput
-									style={[styles.input, { color: textColor }]}
-									placeholder="Username"
-									placeholderTextColor={
-										theme === "dark"
-											? "rgba(255,255,255,0.45)"
-											: "rgba(0,0,0,0.4)"
-									}
-									value={username}
-									onChangeText={setUsername}
-									autoCapitalize="none"
-									autoCorrect={false}
+							<View style={styles.form}>
+								<ProfileSetupInput
+									displayName={displayName}
+									username={username}
+									setDisplayName={setDisplayName}
+									setUsername={setUsername}
+									generateUsername={generateUsername}
 								/>
 							</View>
 						</View>
 
 						<Pressable
 							style={[
-								styles.continueButton,
+								styles.continueButtonContainer,
 								{ opacity: isCreating ? 0.6 : 1 },
 							]}
 							disabled={isCreating}
@@ -341,11 +307,17 @@ export default function profileSetup() {
 								//await createProfile();
 							}}
 						>
-							<Text style={styles.continueText}>
-								{isCreating
-									? "Creating profile..."
-									: "Continue"}
-							</Text>
+							<GlassView
+								tintColor="#17b3da"
+								style={styles.continueButton}
+								isInteractive
+							>
+								<Text style={styles.continueText}>
+									{isCreating
+										? "Creating profile..."
+										: "Continue"}
+								</Text>
+							</GlassView>
 						</Pressable>
 						<Pressable
 							style={styles.cancelButton}
@@ -428,11 +400,8 @@ const styles = StyleSheet.create({
 		width: 34,
 		height: 34,
 		borderRadius: 17,
-		backgroundColor: "#17b3da",
 		alignItems: "center",
 		justifyContent: "center",
-		borderWidth: 2,
-		borderColor: "#fff",
 	},
 
 	photoText: {
@@ -469,17 +438,23 @@ const styles = StyleSheet.create({
 		marginHorizontal: 16,
 	},
 
+	continueButtonContainer: {
+		width: "100%",
+		maxWidth: 420,
+		height: 52,
+		borderRadius: 30,
+		alignItems: "center",
+		justifyContent: "center",
+		marginTop: 20,
+	},
+
 	continueButton: {
 		width: "100%",
 		maxWidth: 420,
 		height: 52,
-		borderRadius: 12,
-		backgroundColor: "#17b3da",
+		borderRadius: 30,
 		alignItems: "center",
 		justifyContent: "center",
-		marginTop: 20,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: "rgba(255,255,255,0.6)",
 	},
 
 	continueText: {

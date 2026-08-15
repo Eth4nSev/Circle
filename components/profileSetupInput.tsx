@@ -2,19 +2,21 @@ import { Colors } from "@/styles/colors";
 import { StyleSheet, TextInput, useColorScheme, View } from "react-native";
 import Separator from "./separator";
 
-type LoginInputProps = {
-	email: string;
-	password: string;
-	setEmail: (value: string) => void;
-	setPassword: (value: string) => void;
+type ProfileSetupInputProps = {
+	displayName: string;
+	username: string;
+	setDisplayName: (value: string) => void;
+	setUsername: (value: string) => void;
+	generateUsername: (value: string) => void;
 };
 
-export default function LoginInput({
-	email,
-	password,
-	setEmail,
-	setPassword,
-}: LoginInputProps) {
+export default function ProfileSetupInput({
+	displayName,
+	username,
+	setDisplayName,
+	setUsername,
+	generateUsername,
+}: ProfileSetupInputProps) {
 	const theme = useColorScheme() ?? "light";
 
 	return (
@@ -23,25 +25,28 @@ export default function LoginInput({
 				styles.container,
 				{
 					backgroundColor: Colors[theme].login,
-					borderColor: theme === "dark" ? "#fff" : "#000",
+					borderColor:
+						theme === "dark"
+							? "rgba(255,255,255,0.15)"
+							: "rgba(0,0,0,0.12)",
 				},
 			]}
 		>
 			<TextInput
 				style={[styles.input, { color: Colors[theme].text }]}
-				placeholder="Email"
+				placeholder="Display name"
 				placeholderTextColor={
 					theme === "dark"
 						? "rgba(255,255,255,0.45)"
 						: "rgba(0,0,0,0.4)"
 				}
-				value={email}
-				onChangeText={setEmail}
-				keyboardType="email-address"
-				autoComplete="email"
-				autoCapitalize="none"
+				value={displayName}
+				onChangeText={(text) => {
+					setDisplayName(text);
+					generateUsername(text);
+				}}
+				autoCapitalize="words"
 				autoCorrect={false}
-				textContentType="emailAddress"
 			/>
 
 			<View>
@@ -50,17 +55,14 @@ export default function LoginInput({
 
 			<TextInput
 				style={[styles.input, { color: Colors[theme].text }]}
-				placeholder="Password"
+				placeholder="Username"
 				placeholderTextColor={
 					theme === "dark"
 						? "rgba(255,255,255,0.45)"
 						: "rgba(0,0,0,0.4)"
 				}
-				value={password}
-				onChangeText={setPassword}
-				autoComplete="password"
-				textContentType="password"
-				secureTextEntry
+				value={username}
+				onChangeText={setUsername}
 				autoCapitalize="none"
 				autoCorrect={false}
 			/>

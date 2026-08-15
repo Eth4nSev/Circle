@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 	container: {
 		width: "100%",
 		maxWidth: 420,
-		borderRadius: 16,
+		borderRadius: 30,
 		borderWidth: StyleSheet.hairlineWidth,
 		overflow: "hidden",
 	},

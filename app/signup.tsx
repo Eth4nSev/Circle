@@ -2,6 +2,7 @@ import Separator from "@/components/separator";
 import SignUpInput from "@/components/signUpInput";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -113,15 +114,21 @@ export default function SignUp() {
 						/>
 
 						<Pressable
-							style={styles.signupButton}
+							style={styles.signupButtonContainer}
 							onPress={async () => {
 								await Haptics.selectionAsync();
 								await handleSignup();
 							}}
 						>
-							<Text style={styles.signupButtonText}>
-								Create Account
-							</Text>
+							<GlassView
+								tintColor="#17b3da"
+								style={styles.signupButton}
+								isInteractive
+							>
+								<Text style={styles.signupButtonText}>
+									Create Account
+								</Text>
+							</GlassView>
 						</Pressable>
 
 						<Text style={[styles.terms, { color: textColor }]}>
@@ -136,10 +143,12 @@ export default function SignUp() {
 								Already have an account?
 							</Text>
 
-							<Pressable onPress={async () => {
-								await Haptics.selectionAsync();
-								router.back();
-							}}>
+							<Pressable
+								onPress={async () => {
+									await Haptics.selectionAsync();
+									router.back();
+								}}
+							>
 								<Text style={styles.loginLink}> Log In</Text>
 							</Pressable>
 						</View>
@@ -187,7 +196,7 @@ const styles = StyleSheet.create({
 	appleButton: {
 		width: "100%",
 		height: 52,
-		borderRadius: 12,
+		borderRadius: 30,
 		backgroundColor: "#000",
 		flexDirection: "row",
 		alignItems: "center",
@@ -215,17 +224,21 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		opacity: 0.5,
 	},
+	signupButtonContainer: {
+		width: "100%",
+		height: 52,
+		borderRadius: 30,
+		alignItems: "center",
+		justifyContent: "center",
+		marginTop: 20,
+	},
 
 	signupButton: {
 		width: "100%",
 		height: 52,
-		borderRadius: 12,
-		backgroundColor: "#17b3da",
+		borderRadius: 30,
 		alignItems: "center",
 		justifyContent: "center",
-		marginTop: 20,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: "rgba(255,255,255,0.6)",
 	},
 
 	signupButtonText: {

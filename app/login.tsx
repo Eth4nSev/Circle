@@ -2,6 +2,7 @@ import LoginInput from "@/components/loginInput";
 import Separator from "@/components/separator";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -98,13 +99,19 @@ export default function LogIn() {
 						</View>
 
 						<Pressable
-							style={styles.loginButton}
+							style={styles.loginButtonContainer}
 							onPress={async () => {
 								await Haptics.selectionAsync();
 								await handleLogin();
 							}}
 						>
-							<Text style={styles.loginText}>Log In</Text>
+							<GlassView
+								tintColor="#17b3da"
+								style={styles.loginButton}
+								isInteractive
+							>
+								<Text style={styles.loginText}>Log In</Text>
+							</GlassView>
 						</Pressable>
 
 						<Pressable style={styles.forgotButton}>
@@ -123,10 +130,12 @@ export default function LogIn() {
 								Don't have an account?
 							</Text>
 
-							<Pressable onPress={async () => {
-								await Haptics.selectionAsync();
-								router.push("/signup")
-							}}>
+							<Pressable
+								onPress={async () => {
+									await Haptics.selectionAsync();
+									router.push("/signup");
+								}}
+							>
 								<Text style={styles.signupLink}> Sign Up</Text>
 							</Pressable>
 						</View>
@@ -170,7 +179,7 @@ const styles = StyleSheet.create({
 	appleButton: {
 		width: "100%",
 		height: 52,
-		borderRadius: 12,
+		borderRadius: 30,
 		backgroundColor: "#000",
 		alignItems: "center",
 		justifyContent: "center",
@@ -204,16 +213,20 @@ const styles = StyleSheet.create({
 		width: "100%",
 	},
 
-	loginButton: {
+	loginButtonContainer: {
 		width: "100%",
 		height: 52,
-		borderRadius: 12,
-		backgroundColor: "#17b3da",
 		alignItems: "center",
 		justifyContent: "center",
 		marginTop: 20,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: "rgba(255,255,255,0.6)",
+		borderRadius: 30,
+	},
+	loginButton: {
+		width: "100%",
+		height: 52,
+		borderRadius: 30,
+		alignItems: "center",
+		justifyContent: "center",
 	},
 
 	loginText: {
