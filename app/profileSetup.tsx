@@ -6,7 +6,9 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+	ActivityIndicator,
 	Alert,
+	Image,
 	ImageBackground,
 	Keyboard,
 	Pressable,
@@ -31,21 +33,81 @@ export default function profileSetup() {
 	const [displayName, setDisplayName] = useState("");
 	const [username, setUsername] = useState("");
 	const [profileImage, setProfileImage] = useState<string | null>(null);
+	const [isCreating, setIsCreating] = useState(false);
+	const [isPickingImage, setIsPickingImage] = useState(false);
 
 	const pickImage = async () => {
-		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: ["images"],
-			allowsEditing: true,
-			aspect: [1, 1],
-			quality: 0.8,
-		});
+		setIsPickingImage(true);
 
-		if (!result.canceled) {
-			setProfileImage(result.assets[0].uri);
+		try {
+			const result = await ImagePicker.launchImageLibraryAsync({
+				mediaTypes: ["images"],
+				allowsEditing: true,
+				aspect: [1, 1],
+				quality: 0.8,
+			});
+
+			if (!result.canceled) {
+				setProfileImage(result.assets[0].uri);
+			}
+		} finally {
+			setIsPickingImage(false);
 		}
 	};
 
-	const createProfile = async () => {
+	const cancelSetup = async () => {
+		const { error } = await supabase.functions.invoke("delete-account");
+
+		if (error) {
+			console.error("Account deletion failed:", error);
+			Alert.alert(
+				"Couldn't cancel setup",
+				"Your account could not be deleted. Please try again.",
+			);
+			return;
+		}
+
+		await supabase.auth.signOut();
+		router.replace("/login");
+	};
+
+	const generateUsername = async (name: string) => {
+		const baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+		if (!baseUsername) {
+			setUsername("");
+			return;
+		}
+
+		let generatedUsername = baseUsername;
+
+		const { data: existingUser } = await supabase
+			.from("profiles")
+			.select("username")
+			.eq("username", generatedUsername)
+			.maybeSingle();
+
+		if (existingUser) {
+			let isAvailable = false;
+
+			while (!isAvailable) {
+				const numbers = Math.floor(1000 + Math.random() * 9000);
+				generatedUsername = `${baseUsername}${numbers}`;
+
+				const { data } = await supabase
+					.from("profiles")
+					.select("username")
+					.eq("username", generatedUsername)
+					.maybeSingle();
+
+				isAvailable = !data;
+			}
+		}
+
+		setUsername(generatedUsername);
+	};
+
+	/* const createProfile = async () => {
 		if (!displayName.trim() || !username.trim()) {
 			Alert.alert(
 				"Missing information",
@@ -54,29 +116,107 @@ export default function profileSetup() {
 			return;
 		}
 
-		const {
-			data: { user },
-			error: userError,
-		} = await supabase.auth.getUser();
+		if (isCreating) return;
 
-		if (userError || !user) {
-			Alert.alert("Error", "You are not currently signed in.");
-			return;
+		setIsCreating(true);
+
+		try {
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser();
+			console.log("USER ID:", user?.id);
+
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			console.log("SESSION USER ID:", session?.user.id);
+			console.log(
+				"SESSION ACCESS TOKEN EXISTS:",
+				!!session?.access_token,
+			);
+
+			if (userError || !user) {
+				Alert.alert("Error", "You are not currently signed in.");
+				return;
+			}
+
+			console.log("USER ID:", user.id);
+
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			console.log("SESSION USER ID:", session?.user.id);
+			console.log(
+				"SESSION ACCESS TOKEN EXISTS:",
+				!!session?.access_token,
+			);
+
+			let avatarUrl: string | null = null;
+
+			if (profileImage) {
+				const response = await fetch(profileImage);
+				const arrayBuffer = await response.arrayBuffer();
+
+				const filePath = `${user.id}.jpg`;
+
+				const { error: uploadError } = await supabase.storage
+					.from("profile-pictures")
+					.upload(filePath, arrayBuffer, {
+						contentType: "image/jpeg",
+						upsert: true,
+					});
+
+				if (uploadError) {
+					throw uploadError;
+				}
+
+				const { data: publicUrl } = supabase.storage
+					.from("profile-pictures")
+					.getPublicUrl(filePath);
+
+				avatarUrl = publicUrl.publicUrl;
+			}
+
+			const profileData = {
+				id: user.id,
+				display_name: displayName.trim(),
+				username: username.trim(),
+				avatar_url: avatarUrl,
+			};
+
+			console.log("INSERTING PROFILE:", profileData);
+
+			const { data: insertedProfile, error: profileError } =
+				await supabase
+					.from("profiles")
+					.insert(profileData)
+					.select()
+					.single();
+
+			console.log("INSERTED PROFILE:", insertedProfile);
+			console.log("PROFILE ERROR:", profileError);
+
+			if (profileError) {
+				throw profileError;
+			}
+
+			router.replace("/");
+		} catch (error) {
+			console.error("Profile setup failed:", error);
+
+			Alert.alert(
+				"Profile setup failed",
+				error instanceof Error
+					? error.message
+					: "Something went wrong.",
+			);
+		} finally {
+			setIsCreating(false);
 		}
-
-		const { error } = await supabase.from("profiles").insert({
-			id: user.id,
-			display_name: displayName.trim(),
-			username: username.trim(),
-		});
-
-		if (error) {
-			Alert.alert("Profile setup failed", error.message);
-			return;
-		}
-
-		router.replace("/");
-	};
+	}; */
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -100,22 +240,38 @@ export default function profileSetup() {
 							style={styles.profileButton}
 						>
 							<View style={styles.profilePlaceholder}>
-								<Ionicons
-									name="person"
-									size={54}
-									color={
-										theme === "dark"
-											? "rgba(255,255,255,0.45)"
-											: "rgba(0,0,0,0.35)"
-									}
-								/>
+								{profileImage ? (
+									<Image
+										source={{ uri: profileImage }}
+										style={styles.profileImage}
+									/>
+								) : (
+									<Ionicons
+										name="person"
+										size={54}
+										color={
+											theme === "dark"
+												? "rgba(255,255,255,0.45)"
+												: "rgba(0,0,0,0.35)"
+										}
+									/>
+								)}
 
 								<View style={styles.addButton}>
-									<Ionicons
-										name="add"
-										size={20}
-										color="#fff"
-									/>
+									{isPickingImage ? (
+										<ActivityIndicator
+											size="small"
+											color="#fff"
+										/>
+									) : (
+										<Ionicons
+											name={
+												profileImage ? "pencil" : "add"
+											}
+											size={20}
+											color="#fff"
+										/>
+									)}
 								</View>
 							</View>
 						</Pressable>
@@ -146,7 +302,10 @@ export default function profileSetup() {
 											: "rgba(0,0,0,0.4)"
 									}
 									value={displayName}
-									onChangeText={setDisplayName}
+									onChangeText={(text) => {
+										setDisplayName(text);
+										generateUsername(text);
+									}}
 									autoCapitalize="words"
 									autoCorrect={false}
 								/>
@@ -172,13 +331,37 @@ export default function profileSetup() {
 						</View>
 
 						<Pressable
-							style={styles.continueButton}
+							style={[
+								styles.continueButton,
+								{ opacity: isCreating ? 0.6 : 1 },
+							]}
+							disabled={isCreating}
 							onPress={async () => {
 								await Haptics.selectionAsync();
-								await createProfile();
+								//await createProfile();
 							}}
 						>
-							<Text style={styles.continueText}>Continue</Text>
+							<Text style={styles.continueText}>
+								{isCreating
+									? "Creating profile..."
+									: "Continue"}
+							</Text>
+						</Pressable>
+						<Pressable
+							style={styles.cancelButton}
+							onPress={async () => {
+								await Haptics.selectionAsync();
+								await cancelSetup();
+							}}
+						>
+							<Text
+								style={[
+									styles.cancelText,
+									{ color: textColor },
+								]}
+							>
+								Cancel
+							</Text>
 						</Pressable>
 
 						<Text style={[styles.infoText, { color: textColor }]}>
@@ -312,5 +495,20 @@ const styles = StyleSheet.create({
 		lineHeight: 18,
 		marginTop: 18,
 		paddingHorizontal: 20,
+	},
+	cancelButton: {
+		marginTop: 16,
+		paddingVertical: 8,
+	},
+
+	cancelText: {
+		fontSize: 15,
+		fontWeight: "600",
+		opacity: 0.7,
+	},
+	profileImage: {
+		width: 120,
+		height: 120,
+		borderRadius: 60,
 	},
 });

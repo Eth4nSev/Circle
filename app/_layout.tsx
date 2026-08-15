@@ -1,87 +1,82 @@
 import { Colors } from "@/styles/colors";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack, useSegments } from "expo-router";
-import { useState } from "react";
+import { Stack } from "expo-router";
 import { useColorScheme } from "react-native";
 
 export default function RootLayout() {
 	const theme = useColorScheme() ?? "light";
-	const segments = useSegments();
+	/* const segments = useSegments();
 	const [session, setSession] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [profileComplete, setProfileComplete] = useState(false);
 
-	/* useEffect(() => {
+	useEffect(() => {
 		const getSession = async () => {
 			const { data } = await supabase.auth.getSession();
 
 			setSession(data.session);
-
-			if (data.session) {
-				const { data: profile } = await supabase
-					.from("profiles")
-					.select("id")
-					.eq("id", data.session.user.id)
-					.single();
-
-				setProfileComplete(!!profile);
-			}
-
 			setLoading(false);
 		};
 
 		getSession();
 
-		const { data: listener } = supabase.auth.onAuthStateChange(
-			async (_event, session) => {
-				setSession(session);
-
-				if (session) {
-					const { data: profile } = await supabase
-						.from("profiles")
-						.select("id")
-						.eq("id", session.user.id)
-						.single();
-
-					setProfileComplete(!!profile);
-				} else {
-					setProfileComplete(false);
-				}
-			},
-		);
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			setSession(session);
+		});
 
 		return () => {
-			listener.subscription.unsubscribe();
+			subscription.unsubscribe();
 		};
 	}, []);
 
 	useEffect(() => {
 		if (loading) return;
 
-		const inAuthGroup = segments[0] === "login" || segments[0] === "signup";
+		const checkProfile = async () => {
+			if (!session) {
+				setProfileComplete(false);
 
-		//const inProfileSetup = segments[0] === "profileSetup";
+				const inAuthGroup =
+					segments[0] === "login" || segments[0] === "signup";
 
-		if (!session) {
-			if (!inAuthGroup) {
-				router.replace("/login");
+				if (!inAuthGroup) {
+					router.replace("/login");
+				}
+
+				return;
 			}
 
-			return;
-		}
+			const { data: profile } = await supabase
+				.from("profiles")
+				.select("id")
+				.eq("id", session.user.id)
+				.maybeSingle();
 
-		if (!profileComplete) {
-			if (!inProfileSetup) {
-				router.replace("./profileSetup");
+			const hasProfile = !!profile;
+			setProfileComplete(hasProfile);
+
+			const inAuthGroup =
+				segments[0] === "login" || segments[0] === "signup";
+
+			const inProfileSetup = segments[0] === "profileSetup";
+
+			if (!hasProfile) {
+				if (!inProfileSetup) {
+					router.replace("/profileSetup");
+				}
+
+				return;
 			}
 
-			return;
-		}
+			if (inAuthGroup || inProfileSetup) {
+				router.replace("/");
+			}
+		};
 
-		if (inAuthGroup  || inProfileSetup ) {
-			router.replace("/");
-		}
-	}, [session, profileComplete, loading, segments]); */
+		checkProfile();
+	}, [session, loading, segments]); */
 
 	return (
 		<Stack screenOptions={{ headerShown: false }}>
@@ -110,6 +105,12 @@ export default function RootLayout() {
 							? "transparent"
 							: Colors[theme].background,
 					},
+				}}
+			/>
+			<Stack.Screen
+				name="login"
+				options={{
+					animation: "slide_from_left",
 				}}
 			/>
 		</Stack>
