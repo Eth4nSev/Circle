@@ -1,22 +1,20 @@
 import { Colors } from "@/styles/colors";
 import { StyleSheet, TextInput, useColorScheme, View } from "react-native";
-import Separator from "./separator";
+import Separator from "../separator";
 
-type ProfileSetupInputProps = {
-	displayName: string;
-	username: string;
-	setDisplayName: (value: string) => void;
-	setUsername: (value: string) => void;
-	generateUsername: (value: string) => void;
+type LoginInputProps = {
+	email: string;
+	password: string;
+	setEmail: (value: string) => void;
+	setPassword: (value: string) => void;
 };
 
-export default function ProfileSetupInput({
-	displayName,
-	username,
-	setDisplayName,
-	setUsername,
-	generateUsername,
-}: ProfileSetupInputProps) {
+export default function LoginInput({
+	email,
+	password,
+	setEmail,
+	setPassword,
+}: LoginInputProps) {
 	const theme = useColorScheme() ?? "light";
 
 	return (
@@ -25,28 +23,25 @@ export default function ProfileSetupInput({
 				styles.container,
 				{
 					backgroundColor: Colors[theme].login,
-					borderColor:
-						theme === "dark"
-							? "rgba(255,255,255,0.15)"
-							: "rgba(0,0,0,0.12)",
+					borderColor: theme === "dark" ? "#fff" : "#000",
 				},
 			]}
 		>
 			<TextInput
 				style={[styles.input, { color: Colors[theme].text }]}
-				placeholder="Display name"
+				placeholder="Email"
 				placeholderTextColor={
 					theme === "dark"
 						? "rgba(255,255,255,0.45)"
 						: "rgba(0,0,0,0.4)"
 				}
-				value={displayName}
-				onChangeText={(text) => {
-					setDisplayName(text);
-					generateUsername(text);
-				}}
-				autoCapitalize="words"
+				value={email}
+				onChangeText={setEmail}
+				keyboardType="email-address"
+				autoComplete="email"
+				autoCapitalize="none"
 				autoCorrect={false}
+				textContentType="emailAddress"
 			/>
 
 			<View>
@@ -55,14 +50,17 @@ export default function ProfileSetupInput({
 
 			<TextInput
 				style={[styles.input, { color: Colors[theme].text }]}
-				placeholder="Username"
+				placeholder="Password"
 				placeholderTextColor={
 					theme === "dark"
 						? "rgba(255,255,255,0.45)"
 						: "rgba(0,0,0,0.4)"
 				}
-				value={username}
-				onChangeText={setUsername}
+				value={password}
+				onChangeText={setPassword}
+				autoComplete="password"
+				textContentType="password"
+				secureTextEntry
 				autoCapitalize="none"
 				autoCorrect={false}
 			/>

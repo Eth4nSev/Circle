@@ -9,7 +9,7 @@ import {
 	ScrollView,
 	Text,
 	useColorScheme,
-	View,
+	View
 } from "react-native";
 import { supabase } from "../utils/supabase";
 

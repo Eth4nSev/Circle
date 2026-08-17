@@ -1,6 +1,6 @@
 import { Colors } from "@/styles/colors";
 import { StyleSheet, TextInput, useColorScheme, View } from "react-native";
-import Separator from "./separator";
+import Separator from "../separator";
 
 type SignUpInputProps = {
 	email: string;

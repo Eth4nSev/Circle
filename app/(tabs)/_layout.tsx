@@ -1,6 +1,9 @@
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
+import { useColorScheme } from "react-native";
 
 export default function TabLayout() {
+	const theme = useColorScheme() ?? 'light';
+
 	return (
 		<NativeTabs>
 			<NativeTabs.Trigger name="index">
@@ -26,6 +29,12 @@ export default function TabLayout() {
 					selectedColor="#17b3da"
 				/>
 				<Label>Profile</Label>
+			</NativeTabs.Trigger>
+			<NativeTabs.Trigger name="newPost" role="search">
+				<Icon
+					sf="plus"
+					selectedColor="#17b3da"
+				/>
 			</NativeTabs.Trigger>
 		</NativeTabs>
 	);

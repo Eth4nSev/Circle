@@ -113,6 +113,19 @@ export default function RootLayout() {
 					animation: "slide_from_left",
 				}}
 			/>
+			<Stack.Screen
+				name="newPost"
+				options={{
+					presentation: 'formSheet',
+					sheetGrabberVisible: false,
+					sheetAllowedDetents: [1],
+					contentStyle: {
+						backgroundColor: isLiquidGlassAvailable()
+							? "transparent"
+							: Colors[theme].background,
+					}
+				}}
+			/>
 		</Stack>
 	);
 }

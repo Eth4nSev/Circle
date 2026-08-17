@@ -1,4 +1,4 @@
-import ProfileSetupInput from "@/components/profileSetupInput";
+import ProfileSetupInput from "@/components/accountManagement/profileSetupInput";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";

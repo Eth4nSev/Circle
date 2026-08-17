@@ -1,4 +1,4 @@
-import LoginInput from "@/components/loginInput";
+import LoginInput from "@/components/accountManagement/loginInput";
 import Separator from "@/components/separator";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -62,23 +62,40 @@ export default function LogIn() {
 						</Text>
 
 						<Pressable
-							style={[
-								styles.appleButton,
-								{ borderColor: Colors[theme].text },
-							]}
+							style={styles.appleButtonContainer}
 							onPress={() => Haptics.selectionAsync()}
 						>
-							<View style={styles.innerAppleButton}>
-								<Ionicons
-									name="logo-apple"
-									size={21}
-									color="#fff"
-								/>
+							<GlassView tintColor="#000" style={styles.appleButton} isInteractive>
+								<View style={styles.innerAppleButton}>
+									<Ionicons
+										name="logo-apple"
+										size={21}
+										color="#fff"
+									/>
 
-								<Text style={styles.appleText}>
-									Continue with Apple
-								</Text>
-							</View>
+									<Text style={styles.appleText}>
+										Continue with Apple
+									</Text>
+								</View>
+							</GlassView>
+						</Pressable>
+						<Pressable
+							style={styles.googleButtonContainer}
+							onPress={() => Haptics.selectionAsync()}
+						>
+							<GlassView tintColor={Colors[theme].card} style={styles.googleButton} isInteractive>
+								<View style={styles.innerGoogleButton}>
+									<Ionicons
+										name="logo-google"
+										size={21}
+										color={Colors[theme].text}
+									/>
+
+									<Text style={[styles.googleText, { color: Colors[theme].text }]}>
+										Continue with Google
+									</Text>
+								</View>
+							</GlassView>
 						</Pressable>
 
 						<View style={styles.separatorContainer}>
@@ -175,15 +192,19 @@ const styles = StyleSheet.create({
 		opacity: 0.65,
 		marginBottom: 36,
 	},
-
+	appleButtonContainer: {
+		width: "100%",
+		height: 52,
+		borderRadius: 30,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	appleButton: {
 		width: "100%",
 		height: 52,
 		borderRadius: 30,
-		backgroundColor: "#000",
 		alignItems: "center",
 		justifyContent: "center",
-		borderWidth: StyleSheet.hairlineWidth,
 	},
 	innerAppleButton: {
 		flexDirection: "row",
@@ -191,6 +212,29 @@ const styles = StyleSheet.create({
 	},
 	appleText: {
 		color: "#fff",
+		fontSize: 17,
+		fontWeight: "600",
+	},
+	googleButtonContainer: {
+		marginTop: 10,
+		width: "100%",
+		height: 52,
+		borderRadius: 30,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	googleButton: {
+		width: "100%",
+		height: 52,
+		borderRadius: 30,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	innerGoogleButton: {
+		flexDirection: "row",
+		gap: 9,
+	},
+	googleText: {
 		fontSize: 17,
 		fontWeight: "600",
 	},
