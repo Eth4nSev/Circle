@@ -1,7 +1,8 @@
+import AppleButton from "@/components/accountManagement/appleButton";
+import GoogleButton from "@/components/accountManagement/googleButton";
 import LoginInput from "@/components/accountManagement/loginInput";
 import Separator from "@/components/separator";
 import { Colors } from "@/styles/colors";
-import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -61,42 +62,8 @@ export default function LogIn() {
 							Log in to continue to Circle
 						</Text>
 
-						<Pressable
-							style={styles.appleButtonContainer}
-							onPress={() => Haptics.selectionAsync()}
-						>
-							<GlassView tintColor="#000" style={styles.appleButton} isInteractive>
-								<View style={styles.innerAppleButton}>
-									<Ionicons
-										name="logo-apple"
-										size={21}
-										color="#fff"
-									/>
-
-									<Text style={styles.appleText}>
-										Continue with Apple
-									</Text>
-								</View>
-							</GlassView>
-						</Pressable>
-						<Pressable
-							style={styles.googleButtonContainer}
-							onPress={() => Haptics.selectionAsync()}
-						>
-							<GlassView tintColor={Colors[theme].card} style={styles.googleButton} isInteractive>
-								<View style={styles.innerGoogleButton}>
-									<Ionicons
-										name="logo-google"
-										size={21}
-										color={Colors[theme].text}
-									/>
-
-									<Text style={[styles.googleText, { color: Colors[theme].text }]}>
-										Continue with Google
-									</Text>
-								</View>
-							</GlassView>
-						</Pressable>
+						<AppleButton />
+						<GoogleButton />
 
 						<View style={styles.separatorContainer}>
 							<Separator />
@@ -123,7 +90,7 @@ export default function LogIn() {
 							}}
 						>
 							<GlassView
-								tintColor="#17b3da"
+								tintColor={Colors.accent}
 								style={styles.loginButton}
 								isInteractive
 							>
@@ -132,7 +99,12 @@ export default function LogIn() {
 						</Pressable>
 
 						<Pressable style={styles.forgotButton}>
-							<Text style={styles.forgotText}>
+							<Text
+								style={[
+									styles.forgotText,
+									{ color: Colors.accent },
+								]}
+							>
 								Forgot password?
 							</Text>
 						</Pressable>
@@ -153,7 +125,15 @@ export default function LogIn() {
 									router.push("/signup");
 								}}
 							>
-								<Text style={styles.signupLink}> Sign Up</Text>
+								<Text
+									style={[
+										styles.signupLink,
+										{ color: Colors.accent },
+									]}
+								>
+									{" "}
+									Sign Up
+								</Text>
 							</Pressable>
 						</View>
 					</View>
@@ -191,52 +171,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		opacity: 0.65,
 		marginBottom: 36,
-	},
-	appleButtonContainer: {
-		width: "100%",
-		height: 52,
-		borderRadius: 30,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	appleButton: {
-		width: "100%",
-		height: 52,
-		borderRadius: 30,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	innerAppleButton: {
-		flexDirection: "row",
-		gap: 9,
-	},
-	appleText: {
-		color: "#fff",
-		fontSize: 17,
-		fontWeight: "600",
-	},
-	googleButtonContainer: {
-		marginTop: 10,
-		width: "100%",
-		height: 52,
-		borderRadius: 30,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	googleButton: {
-		width: "100%",
-		height: 52,
-		borderRadius: 30,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	innerGoogleButton: {
-		flexDirection: "row",
-		gap: 9,
-	},
-	googleText: {
-		fontSize: 17,
-		fontWeight: "600",
 	},
 
 	separatorContainer: {
@@ -284,7 +218,6 @@ const styles = StyleSheet.create({
 	},
 
 	forgotText: {
-		color: "#17b3da",
 		fontSize: 14,
 		fontWeight: "600",
 	},
@@ -301,7 +234,6 @@ const styles = StyleSheet.create({
 	},
 
 	signupLink: {
-		color: "#17b3da",
 		fontSize: 14,
 		fontWeight: "700",
 	},

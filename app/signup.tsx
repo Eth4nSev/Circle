@@ -1,7 +1,8 @@
+import AppleButton from "@/components/accountManagement/appleButton";
+import GoogleButton from "@/components/accountManagement/googleButton";
 import SignUpInput from "@/components/accountManagement/signUpInput";
 import Separator from "@/components/separator";
 import { Colors } from "@/styles/colors";
-import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -76,42 +77,8 @@ export default function SignUp() {
 							Join Circle and start connecting
 						</Text>
 
-						<Pressable
-							style={styles.appleButtonContainer}
-							onPress={() => Haptics.selectionAsync()}
-						>
-							<GlassView tintColor="#000" style={styles.appleButton} isInteractive>
-								<View style={styles.innerAppleButton}>
-									<Ionicons
-										name="logo-apple"
-										size={21}
-										color="#fff"
-									/>
-
-									<Text style={styles.appleText}>
-										Continue with Apple
-									</Text>
-								</View>
-							</GlassView>
-						</Pressable>
-						<Pressable
-							style={styles.googleButtonContainer}
-							onPress={() => Haptics.selectionAsync()}
-						>
-							<GlassView tintColor={Colors[theme].card} style={styles.googleButton} isInteractive>
-								<View style={styles.innerGoogleButton}>
-									<Ionicons
-										name="logo-google"
-										size={21}
-										color={Colors[theme].text}
-									/>
-
-									<Text style={[styles.googleText, { color: Colors[theme].text }]}>
-										Continue with Google
-									</Text>
-								</View>
-							</GlassView>
-						</Pressable>
+						<AppleButton />
+						<GoogleButton />
 
 						<View style={styles.separatorContainer}>
 							<Separator />
@@ -140,7 +107,7 @@ export default function SignUp() {
 							}}
 						>
 							<GlassView
-								tintColor="#17b3da"
+								tintColor={Colors.accent}
 								style={styles.signupButton}
 								isInteractive
 							>
@@ -168,7 +135,15 @@ export default function SignUp() {
 									router.back();
 								}}
 							>
-								<Text style={styles.loginLink}> Log In</Text>
+								<Text
+									style={[
+										styles.loginLink,
+										{ color: Colors.accent },
+									]}
+								>
+									{" "}
+									Log In
+								</Text>
 							</Pressable>
 						</View>
 					</View>
@@ -316,7 +291,6 @@ const styles = StyleSheet.create({
 	},
 
 	loginLink: {
-		color: "#17b3da",
 		fontSize: 14,
 		fontWeight: "700",
 	},

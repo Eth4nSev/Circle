@@ -107,7 +107,7 @@ export default function profileSetup() {
 		setUsername(generatedUsername);
 	};
 
-	/* const createProfile = async () => {
+	const createProfile = async () => {
 		if (!displayName.trim() || !username.trim()) {
 			Alert.alert(
 				"Missing information",
@@ -125,17 +125,6 @@ export default function profileSetup() {
 				data: { user },
 				error: userError,
 			} = await supabase.auth.getUser();
-			console.log("USER ID:", user?.id);
-
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-
-			console.log("SESSION USER ID:", session?.user.id);
-			console.log(
-				"SESSION ACCESS TOKEN EXISTS:",
-				!!session?.access_token,
-			);
 
 			if (userError || !user) {
 				Alert.alert("Error", "You are not currently signed in.");
@@ -160,7 +149,7 @@ export default function profileSetup() {
 				const response = await fetch(profileImage);
 				const arrayBuffer = await response.arrayBuffer();
 
-				const filePath = `${user.id}.jpg`;
+				const filePath = `${user.id}/profile.jpg`;
 
 				const { error: uploadError } = await supabase.storage
 					.from("profile-pictures")
@@ -216,7 +205,7 @@ export default function profileSetup() {
 		} finally {
 			setIsCreating(false);
 		}
-	}; */
+	};
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -258,7 +247,7 @@ export default function profileSetup() {
 								)}
 
 								<GlassView
-									tintColor="#17b3da"
+									tintColor={Colors.accent}
 									style={styles.addButton}
 									isInteractive
 								>
@@ -304,11 +293,11 @@ export default function profileSetup() {
 							disabled={isCreating}
 							onPress={async () => {
 								await Haptics.selectionAsync();
-								//await createProfile();
+								await createProfile();
 							}}
 						>
 							<GlassView
-								tintColor="#17b3da"
+								tintColor={Colors.accent}
 								style={styles.continueButton}
 								isInteractive
 							>

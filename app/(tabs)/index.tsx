@@ -1,21 +1,26 @@
+import AddPost from "@/components/addPost";
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import {
-	Pressable,
-	ScrollView,
-	Text,
-	useColorScheme,
-	View
-} from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, Text, useColorScheme, View } from "react-native";
 import { supabase } from "../utils/supabase";
 
 export default function Index() {
 	const theme = useColorScheme() ?? "light";
 	const [posts, setPosts] = useState<any[]>([]);
+
+	const scrollY = useRef(new Animated.Value(0)).current;
+
+	const clampedScrollY = scrollY.interpolate({
+		inputRange: [0, 1],
+		outputRange: [0, 1],
+		extrapolateLeft: "clamp",
+	});
+
+	const translateY = Animated.diffClamp(clampedScrollY, 0, 200);
 
 	useEffect(() => {
 		async function getPosts() {
@@ -33,70 +38,88 @@ export default function Index() {
 	}, []);
 
 	return (
-		<ScrollView
-			style={{ backgroundColor: Colors[theme].background, flex: 1 }}
-			contentInsetAdjustmentBehavior="automatic"
-		>
-			<View style={{ flexDirection: "row", alignItems: "center" }}>
-				<GlassView
-					style={{
-						width: 100,
-						height: 40,
-						paddingVertical: 5,
-						justifyContent: "center",
-						alignItems: "center",
-						margin: 10,
-						borderRadius: 20,
-					}}
-					isInteractive
-				>
-					<Text
+		<>
+			<Animated.ScrollView
+				style={{ backgroundColor: Colors[theme].background, flex: 1 }}
+				contentInsetAdjustmentBehavior="automatic"
+				onScroll={Animated.event(
+					[{ nativeEvent: { contentOffset: { y: scrollY } } }],
+					{ useNativeDriver: true },
+				)}
+				scrollEventThrottle={16}
+			>
+				<View style={{ flexDirection: "row", alignItems: "center" }}>
+					<GlassView
 						style={{
-							color: Colors[theme].text,
-							fontWeight: "bold",
-							fontSize: 20,
+							width: 100,
+							height: 40,
+							paddingVertical: 5,
+							justifyContent: "center",
+							alignItems: "center",
+							margin: 10,
+							borderRadius: 20,
+						}}
+						isInteractive
+					>
+						<Text
+							style={{
+								color: Colors[theme].text,
+								fontWeight: "bold",
+								fontSize: 20,
+							}}
+						>
+							Home
+						</Text>
+					</GlassView>
+					<View
+						style={{
+							flexDirection: "row",
+							gap: 20,
+							position: "absolute",
+							right: 10,
 						}}
 					>
-						Home
-					</Text>
-				</GlassView>
-				<View
-					style={{
-						flexDirection: "row",
-						gap: 20,
-						position: "absolute",
-						right: 10,
-					}}
-				>
-					<Pressable
-						onPress={() => router.push('../login')}
-					>
-						<Text style={{ color: Colors[theme].text }}>
-							Log In
-						</Text>
-					</Pressable>
-					<Pressable
-						onPress={async () => {
-							await Haptics.selectionAsync();
-							await supabase.auth.signOut();
-						}}
-					>
-						<Text style={{ color: Colors[theme].text }}>
-							Sign Out
-						</Text>
-					</Pressable>
+						<Pressable onPress={() => router.push("../login")}>
+							<Text style={{ color: Colors[theme].text }}>
+								Log In
+							</Text>
+						</Pressable>
+						<Pressable
+							onPress={async () => {
+								await Haptics.selectionAsync();
+								await supabase.auth.signOut();
+							}}
+						>
+							<Text style={{ color: Colors[theme].text }}>
+								Sign Out
+							</Text>
+						</Pressable>
+					</View>
 				</View>
-			</View>
-			{posts.map((post) => (
-				<PostContainer
-					key={post.id}
-					href={{ uri: post.image }}
-					time={post.created_at}
-					author={post.author}
-					pfp={{ uri: post.pfp }}
-					caption={post.caption}
-				/>
-			))}
-		</ScrollView>
+				{posts.map((post) => (
+					<PostContainer
+						key={post.id}
+						href={{ uri: post.image }}
+						time={post.created_at}
+						author={post.author}
+						pfp={{ uri: post.pfp }}
+						caption={post.caption}
+					/>
+				))}
+			</Animated.ScrollView>
+
+			<Animated.View
+				style={{
+					width: "100%",
+					justifyContent: "center",
+					alignItems: "center",
+					position: "absolute",
+					bottom: 100,
+					transform: [{ translateY: translateY }],
+				}}
+			>
+				<AddPost href="../newPost" />
+			</Animated.View>
+		</>
 	);
 }

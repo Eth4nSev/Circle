@@ -1,11 +1,13 @@
 import { Colors } from "@/styles/colors";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack } from "expo-router";
+import { router, Stack, useSegments } from "expo-router";
+import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
+import { supabase } from "./utils/supabase";
 
 export default function RootLayout() {
 	const theme = useColorScheme() ?? "light";
-	/* const segments = useSegments();
+	const segments = useSegments();
 	const [session, setSession] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [profileComplete, setProfileComplete] = useState(false);
@@ -76,7 +78,7 @@ export default function RootLayout() {
 		};
 
 		checkProfile();
-	}, [session, loading, segments]); */
+	}, [session, loading, segments]);
 
 	return (
 		<Stack screenOptions={{ headerShown: false }}>
@@ -116,14 +118,14 @@ export default function RootLayout() {
 			<Stack.Screen
 				name="newPost"
 				options={{
-					presentation: 'formSheet',
-					sheetGrabberVisible: false,
+					presentation: "formSheet",
+					sheetGrabberVisible: true,
 					sheetAllowedDetents: [1],
 					contentStyle: {
 						backgroundColor: isLiquidGlassAvailable()
 							? "transparent"
 							: Colors[theme].background,
-					}
+					},
 				}}
 			/>
 		</Stack>
