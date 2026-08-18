@@ -2,9 +2,10 @@ import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
-import { router } from "expo-router";
+import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+	Image,
 	Pressable,
 	ScrollView,
 	StyleSheet,
@@ -17,9 +18,40 @@ import { supabase } from "../utils/supabase";
 export default function ProfileScreen() {
 	const theme = useColorScheme() ?? "light";
 	const [posts, setPosts] = useState<any[]>([]);
-	const colors = Colors[theme];
+	const [profileImage, setProfileImage] = useState<string | null>(null);
+	const [displayName, setDisplayName] = useState("Display Name");
+	const [username, setUsername] = useState("username");
 
 	useEffect(() => {
+		async function getProfile() {
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser();
+
+			if (userError || !user) {
+				console.error("Error fetching auth user:", userError);
+				return;
+			}
+
+			const { data, error } = await supabase
+				.from("profiles")
+				.select("avatar_url, display_name, username")
+				.eq("id", user.id)
+				.single();
+
+			if (error) {
+				console.error("Error fetching profile:", error);
+				return;
+			}
+
+			if (data?.avatar_url) {
+				setProfileImage(data.avatar_url);
+				setDisplayName(data.display_name);
+				setUsername(data.username);
+			}
+		}
+
 		async function getPosts() {
 			const { data, error } = await supabase.from("posts").select("*");
 
@@ -28,60 +60,67 @@ export default function ProfileScreen() {
 				return;
 			}
 
-			setPosts(data);
+			setPosts(data ?? []);
 		}
 
+		getProfile();
 		getPosts();
 	}, []);
 
 	return (
 		<View
-			style={[styles.container, { backgroundColor: colors.background }]}
+			style={[styles.container, { backgroundColor: Colors[theme].background }]}
 		>
+			<Pressable style={styles.settingsButton}>
+				<Link href="/settings">
+					<GlassView isInteractive style={styles.glassButton}>
+						<MaterialIcons
+							name="settings"
+							size={24}
+							color={Colors[theme].text}
+						/>
+					</GlassView>
+				</Link>
+			</Pressable>
+			<Pressable style={styles.editButton}>
+				<GlassView isInteractive style={styles.glassButton}>
+					<Ionicons
+						name="pencil"
+						color={Colors[theme].text}
+						size={24}
+					/>
+				</GlassView>
+			</Pressable>
 			<ScrollView
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={styles.content}
 				contentInsetAdjustmentBehavior="automatic"
 			>
-				<Pressable
-					onPress={() => router.push("/(tabs)/settings")}
-					style={styles.settingsButton}
-				>
-					<GlassView isInteractive style={styles.glassButton}>
-						<MaterialIcons
-							name="settings"
-							size={24}
-							color={colors.text}
-						/>
-					</GlassView>
-				</Pressable>
-				<Pressable style={styles.editButton}>
-					<GlassView isInteractive style={styles.glassButton}>
-						<Ionicons
-							name="pencil"
-							color={Colors[theme].text}
-							size={24}
-						/>
-					</GlassView>
-				</Pressable>
 
 				<View style={styles.profileHeader}>
 					<View style={styles.profilePicture}>
-						<MaterialIcons
-							name="person"
-							size={58}
-							color={colors.text}
-						/>
+						{profileImage ? (
+							<Image
+								source={{ uri: profileImage }}
+								style={styles.profilePictureImage}
+							/>
+						) : (
+							<MaterialIcons
+								name="person"
+								size={55}
+								color={Colors[theme].secondary}
+							/>
+						)}
 					</View>
 
-					<Text style={[styles.displayName, { color: colors.text }]}>
-						Display Name
+					<Text style={[styles.displayName, { color: Colors[theme].text }]}>
+						{displayName}
 					</Text>
 
 					<Text
-						style={[styles.username, { color: colors.secondary }]}
+						style={[styles.username, { color: Colors[theme].secondary }]}
 					>
-						@username
+						@{username}
 					</Text>
 				</View>
 
@@ -93,14 +132,14 @@ export default function ProfileScreen() {
 						]}
 					>
 						<Text
-							style={[styles.statNumber, { color: colors.text }]}
+							style={[styles.statNumber, { color: Colors[theme].text }]}
 						>
 							0
 						</Text>
 						<Text
 							style={[
 								styles.statLabel,
-								{ color: colors.secondary },
+								{ color: Colors[theme].secondary },
 							]}
 						>
 							Followers
@@ -114,14 +153,14 @@ export default function ProfileScreen() {
 						]}
 					>
 						<Text
-							style={[styles.statNumber, { color: colors.text }]}
+							style={[styles.statNumber, { color: Colors[theme].text }]}
 						>
 							0
 						</Text>
 						<Text
 							style={[
 								styles.statLabel,
-								{ color: colors.secondary },
+								{ color: Colors[theme].secondary },
 							]}
 						>
 							Following
@@ -135,14 +174,14 @@ export default function ProfileScreen() {
 						]}
 					>
 						<Text
-							style={[styles.statNumber, { color: colors.text }]}
+							style={[styles.statNumber, { color: Colors[theme].text }]}
 						>
 							0
 						</Text>
 						<Text
 							style={[
 								styles.statLabel,
-								{ color: colors.secondary },
+								{ color: Colors[theme].secondary },
 							]}
 						>
 							Posts
@@ -150,7 +189,7 @@ export default function ProfileScreen() {
 					</View>
 				</View>
 
-				<Pressable style={styles.followButtonContainer}>
+				{/* <Pressable style={styles.followButtonContainer}>
 					<GlassView
 						tintColor={Colors.accent}
 						style={styles.followButton}
@@ -158,10 +197,10 @@ export default function ProfileScreen() {
 					>
 						<Text style={styles.followButtonText}>Follow</Text>
 					</GlassView>
-				</Pressable>
+				</Pressable> */}
 
 				<View style={styles.postSection}>
-					<Text style={[styles.sectionTitle, { color: colors.text }]}>
+					<Text style={[styles.sectionTitle, { color: Colors[theme].text }]}>
 						Posts
 					</Text>
 					{posts.map((post) => (
@@ -193,11 +232,13 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		right: 16,
 		zIndex: 16,
+		top: 60,
 	},
 	editButton: {
 		position: "absolute",
 		left: 16,
 		zIndex: 16,
+		top: 60,
 	},
 
 	glassButton: {
@@ -221,6 +262,12 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		backgroundColor: "rgba(128, 128, 128, 0.2)",
 		marginBottom: 14,
+		overflow: "hidden",
+	},
+	profilePictureImage: {
+		width: "100%",
+		height: "100%",
+		borderRadius: 55,
 	},
 
 	displayName: {

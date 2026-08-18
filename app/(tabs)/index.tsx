@@ -3,7 +3,6 @@ import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, Text, useColorScheme, View } from "react-native";
 import { supabase } from "../utils/supabase";
@@ -79,11 +78,6 @@ export default function Index() {
 							right: 10,
 						}}
 					>
-						<Pressable onPress={() => router.push("../login")}>
-							<Text style={{ color: Colors[theme].text }}>
-								Log In
-							</Text>
-						</Pressable>
 						<Pressable
 							onPress={async () => {
 								await Haptics.selectionAsync();

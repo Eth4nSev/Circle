@@ -28,6 +28,13 @@ export default function TabLayout() {
 				/>
 				<Label>Profile</Label>
 			</NativeTabs.Trigger>
+			<NativeTabs.Trigger name="search" role="search">
+				<Icon
+					sf="magnifyingglass"
+					selectedColor={Colors.accent}
+				/>
+				<Label>Search</Label>
+			</NativeTabs.Trigger>
 		</NativeTabs>
 	);
 }
