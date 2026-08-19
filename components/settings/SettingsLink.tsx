@@ -1,7 +1,13 @@
 import { Colors } from "@/styles/colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, StyleSheet, Text, useColorScheme, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 
 type external = "internal" | "external";
 
@@ -10,6 +16,7 @@ type SettingsLinkProps = {
   href: string;
   type?: external;
   selectedValue?: string;
+  danger?: boolean;
 };
 
 export default function SettingsLink({
@@ -17,8 +24,9 @@ export default function SettingsLink({
   href,
   type = "internal",
   selectedValue,
+  danger,
 }: SettingsLinkProps) {
-  const theme = useColorScheme() ?? 'light';
+  const theme = useColorScheme() ?? "light";
 
   return (
     <Pressable
@@ -32,10 +40,12 @@ export default function SettingsLink({
         <Text style={{ fontSize: 17, color: "#0188fe" }}>{title}</Text>
       ) : (
         <>
-          <Text style={[styles.settingsText, { color: Colors[theme].text }]}>{title}</Text>
+          <Text style={[styles.settingsText, { color: Colors[theme].text }]}>
+            {title}
+          </Text>
           <View style={styles.settingsValueContainer}>
             {selectedValue && (
-              <Text style={styles.selectedInsideText}>Dark</Text>
+              <Text style={styles.selectedInsideText}>{selectedValue}</Text>
             )}
             <MaterialIcons name="arrow-forward-ios" size={17} color="#555" />
           </View>
@@ -69,4 +79,4 @@ const styles = StyleSheet.create({
     color: "#888",
     fontSize: 17,
   },
-})
+});

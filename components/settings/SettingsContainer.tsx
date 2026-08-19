@@ -12,10 +12,10 @@ export default function SettingsContainer({
   title,
   children,
 }: SettingsContainerProps) {
-  const theme = useColorScheme() ?? 'light';
+  const theme = useColorScheme() ?? "light";
   const items = Children.toArray(children);
   return (
-    <View style={{ margin: 16 }}>
+    <View style={{ margin: 16, marginBottom: 0 }}>
       {title && (
         <Text
           style={{
@@ -29,7 +29,12 @@ export default function SettingsContainer({
           {title}
         </Text>
       )}
-      <View style={[styles.settingsContainer, { backgroundColor: Colors[theme].card }]}>
+      <View
+        style={[
+          styles.settingsContainer,
+          { backgroundColor: Colors[theme].card },
+        ]}
+      >
         {items.map((children, index) => (
           <View key={index}>
             {children}
@@ -45,4 +50,4 @@ const styles = StyleSheet.create({
   settingsContainer: {
     borderRadius: 20,
   },
-})
+});
