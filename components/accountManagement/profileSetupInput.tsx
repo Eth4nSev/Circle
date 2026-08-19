@@ -59,6 +59,7 @@ export default function ProfileSetupInput({
         onChangeText={setUsername}
         autoCapitalize="none"
         autoCorrect={false}
+        returnKeyType="done"
       />
     </View>
   );
