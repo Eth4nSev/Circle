@@ -21,6 +21,33 @@ import {
 
 const iconSize: number = 30;
 
+function formatRelativeTime(createdAt: string) {
+  const timestamp = new Date(createdAt).getTime();
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((Date.now() - timestamp) / 1000),
+  );
+
+  if (!Number.isFinite(timestamp) || elapsedSeconds < 60) {
+    return "now";
+  }
+
+  const units = [
+    { seconds: 60 * 60 * 24 * 365, label: "year" },
+    { seconds: 60 * 60 * 24 * 30, label: "month" },
+    { seconds: 60 * 60 * 24 * 7, label: "week" },
+    { seconds: 60 * 60 * 24, label: "day" },
+    { seconds: 60 * 60, label: "hour" },
+    { seconds: 60, label: "minute" },
+  ];
+
+  const unit = units.find(({ seconds }) => elapsedSeconds >= seconds);
+  if (!unit) return "now";
+
+  const value = Math.floor(elapsedSeconds / unit.seconds);
+  return `${value} ${unit.label}${value === 1 ? "" : "s"} ago`;
+}
+
 type props = {
   author: string;
   time: string;
@@ -79,11 +106,11 @@ export default function PostContainer({
       <View style={styles.postAccount}>
         <Image source={pfp} style={styles.pfp} />
         <Text style={[styles.postAccountName, { color: Colors[theme].text }]}>
-          {author}
+          @{author}
         </Text>
         <Text style={{ color: Colors[theme].secondary }}>{"\u2022"}</Text>
         <Text style={[styles.timeStamp, { color: Colors[theme].secondary }]}>
-          {time}
+          {formatRelativeTime(time)}
         </Text>
       </View>
       <Image

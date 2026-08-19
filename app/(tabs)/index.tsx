@@ -3,12 +3,13 @@ import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { GlassView } from "expo-glass-effect";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Text, useColorScheme, View } from "react-native";
+import { Animated, RefreshControl, Text, useColorScheme, View } from "react-native";
 import { supabase } from "../utils/supabase";
 
 export default function Index() {
   const theme = useColorScheme() ?? "light";
   const [posts, setPosts] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -20,21 +21,24 @@ export default function Index() {
 
   const translateY = Animated.diffClamp(clampedScrollY, 0, 200);
 
-  useEffect(() => {
-    async function getPosts() {
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .order("created_at", { ascending: false });
+  async function getPosts(isRefreshing = false) {
+    if (isRefreshing) setRefreshing(true);
 
-      if (error) {
-        console.error("Error fetching posts:", error);
-        return;
-      }
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Error fetching posts:", error);
+    } else {
       setPosts(data);
     }
 
+    if (isRefreshing) setRefreshing(false);
+  }
+
+  useEffect(() => {
     getPosts();
   }, []);
 
@@ -43,6 +47,13 @@ export default function Index() {
       <Animated.ScrollView
         style={{ backgroundColor: Colors[theme].background, flex: 1 }}
         contentInsetAdjustmentBehavior="automatic"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => getPosts(true)}
+            tintColor={Colors[theme].text}
+          />
+        }
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },

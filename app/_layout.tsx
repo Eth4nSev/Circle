@@ -111,8 +111,9 @@ export default function RootLayout() {
         name="editProfile"
         options={{
           presentation: "formSheet",
-          sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.9],
+          sheetGrabberVisible: false,
+          gestureEnabled: false,
+          sheetAllowedDetents: [0.6],
           contentStyle: {
             backgroundColor: isLiquidGlassAvailable()
               ? "transparent"

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import {
   Image,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,9 +23,12 @@ export default function ProfileScreen() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Display Name");
   const [username, setUsername] = useState("username");
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    async function getProfile() {
+  async function refreshData() {
+    setRefreshing(true);
+
+    try {
       const {
         data: { user },
         error: userError,
@@ -32,28 +36,22 @@ export default function ProfileScreen() {
 
       if (userError || !user) {
         console.error("Error fetching auth user:", userError);
-        return;
+      } else {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("avatar_url, display_name, username")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+        } else if (data) {
+          setProfileImage(data.avatar_url ?? null);
+          setDisplayName(data.display_name ?? "Display Name");
+          setUsername(data.username ?? "username");
+        }
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("avatar_url, display_name, username")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return;
-      }
-
-      if (data?.avatar_url) {
-        setProfileImage(data.avatar_url);
-        setDisplayName(data.display_name);
-        setUsername(data.username);
-      }
-    }
-
-    async function getPosts() {
       const { data, error } = await supabase
         .from("posts")
         .select("*")
@@ -61,14 +59,16 @@ export default function ProfileScreen() {
 
       if (error) {
         console.error("Error fetching posts:", error);
-        return;
+      } else {
+        setPosts(data ?? []);
       }
-
-      setPosts(data ?? []);
+    } finally {
+      setRefreshing(false);
     }
+  }
 
-    getProfile();
-    getPosts();
+  useEffect(() => {
+    refreshData();
   }, []);
 
   return (
@@ -129,6 +129,9 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
           contentInsetAdjustmentBehavior="automatic"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={refreshData} />
+          }
         >
           <View style={styles.profileHeader}>
             <View style={styles.profilePicture}>
@@ -159,16 +162,7 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.statsContainer}>
-            <View
-              style={[
-                styles.statCard,
-                {
-                  /* backgroundColor: Colors[theme].card,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: Colors[theme].secondary, */
-                },
-              ]}
-            >
+            <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 1
               </Text>
@@ -179,16 +173,7 @@ export default function ProfileScreen() {
               </Text>
             </View>
 
-            <View
-              style={[
-                styles.statCard,
-                {
-                  /* backgroundColor: Colors[theme].card,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: Colors[theme].secondary, */
-                },
-              ]}
-            >
+            <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 1
               </Text>
@@ -199,16 +184,7 @@ export default function ProfileScreen() {
               </Text>
             </View>
 
-            <View
-              style={[
-                styles.statCard,
-                {
-                  /* backgroundColor: Colors[theme].card,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: Colors[theme].secondary, */
-                },
-              ]}
-            >
+            <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 3
               </Text>

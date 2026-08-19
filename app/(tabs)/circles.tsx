@@ -1,14 +1,26 @@
 import PostContainer from "@/components/post";
 import { useEffect, useState } from "react";
-import { ImageBackground, ScrollView, useColorScheme } from "react-native";
+import {
+  ImageBackground,
+  RefreshControl,
+  ScrollView,
+  useColorScheme,
+} from "react-native";
 import { supabase } from "../utils/supabase";
 
 export default function Index() {
   const theme = useColorScheme() ?? "light";
   const [posts, setPosts] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    async function getPosts() {
+    getPosts();
+  }, []);
+
+  async function getPosts() {
+    setRefreshing(true);
+
+    try {
       const { data, error } = await supabase
         .from("posts")
         .select("*")
@@ -19,11 +31,11 @@ export default function Index() {
         return;
       }
 
-      setPosts(data);
+      setPosts(data ?? []);
+    } finally {
+      setRefreshing(false);
     }
-
-    getPosts();
-  }, []);
+  }
 
   return (
     <ImageBackground
@@ -31,7 +43,12 @@ export default function Index() {
       resizeMode="cover"
       style={{ flex: 1 }}
     >
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={getPosts} />
+        }
+      >
         {posts.map((post) => (
           <PostContainer
             key={post.id}
