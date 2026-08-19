@@ -253,6 +253,18 @@ export default function EditProfile() {
             )}
           </GlassView>
         </Pressable>
+        <Text
+          style={{
+            color: Colors[theme].text,
+            marginTop: 10,
+            textAlign: "center",
+            fontSize: 12,
+            opacity: 0.55,
+            lineHeight: 18,
+          }}
+        >
+          Your profile helps people recognize you in Circles
+        </Text>
       </View>
     </KeyboardAvoidingView>
   );

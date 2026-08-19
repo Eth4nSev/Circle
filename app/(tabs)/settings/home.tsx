@@ -1,6 +1,5 @@
 import { supabase } from "@/app/utils/supabase";
 import SettingsContainer from "@/components/settings/SettingsContainer";
-import SettingsItem from "@/components/settings/SettingsItem";
 import SettingsLink from "@/components/settings/SettingsLink";
 import SignOut from "@/components/settings/SignOut";
 import { Colors } from "@/styles/colors";
@@ -62,7 +61,6 @@ export default function Index() {
           <SettingsLink href="" title="Security" />
         </SettingsContainer>
         <SettingsContainer>
-          <SettingsItem type="switch" title="Modern UI *beta" />
           <SettingsLink href="" title="Appearance" />
         </SettingsContainer>
         <SettingsContainer>

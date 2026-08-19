@@ -113,7 +113,7 @@ export default function RootLayout() {
           presentation: "formSheet",
           sheetGrabberVisible: false,
           gestureEnabled: false,
-          sheetAllowedDetents: [0.6],
+          sheetAllowedDetents: [0.61],
           contentStyle: {
             backgroundColor: isLiquidGlassAvailable()
               ? "transparent"
