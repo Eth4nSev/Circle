@@ -1,11 +1,5 @@
 import { Colors } from "@/styles/colors";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
-} from "react-native";
+import { StyleSheet, TextInput, useColorScheme, View } from "react-native";
 import Separator from "../separator";
 
 type ProfileSetupInputProps = {
@@ -54,20 +48,18 @@ export default function ProfileSetupInput({
       <View>
         <Separator />
       </View>
-      <View style={styles.input}>
-        <Text style={[styles.at, { color: Colors[theme].secondary }]}>@</Text>
-        <TextInput
-          style={[{ color: Colors[theme].text }]}
-          placeholder="Username"
-          placeholderTextColor={
-            theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)"
-          }
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-      </View>
+
+      <TextInput
+        style={[styles.input, { color: Colors[theme].text }]}
+        placeholder="Username"
+        placeholderTextColor={
+          theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)"
+        }
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
     </View>
   );
 }
@@ -84,9 +76,6 @@ const styles = StyleSheet.create({
   input: {
     height: 54,
     paddingHorizontal: 20,
-    fontSize: 16,
-  },
-  at: {
     fontSize: 16,
   },
 });
