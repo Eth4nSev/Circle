@@ -20,17 +20,37 @@ import {
 export default function ProfileScreen() {
   const theme = useColorScheme() ?? "light";
   const { userId } = useLocalSearchParams<{ userId: string }>();
+
   const [posts, setPosts] = useState<any[]>([]);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Display Name");
   const [username, setUsername] = useState("username");
+
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   const [refreshing, setRefreshing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   async function refreshData() {
     setRefreshing(true);
 
     try {
       if (!userId) return;
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        console.error("Error fetching current user:", userError);
+        return;
+      }
+
+      setCurrentUserId(user.id);
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -57,14 +77,94 @@ export default function ProfileScreen() {
       } else {
         setPosts(userPosts ?? []);
       }
+
+      const { count: followers, error: followersError } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", userId);
+
+      if (followersError) {
+        console.error("Error fetching followers:", followersError);
+      } else {
+        setFollowerCount(followers ?? 0);
+      }
+
+      const { count: following, error: followingError } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("follower_id", userId);
+
+      if (followingError) {
+        console.error("Error fetching following:", followingError);
+      } else {
+        setFollowingCount(following ?? 0);
+      }
+
+      if (user.id !== userId) {
+        const { data: follow, error: followError } = await supabase
+          .from("follows")
+          .select("follower_id")
+          .eq("follower_id", user.id)
+          .eq("following_id", userId)
+          .maybeSingle();
+
+        if (followError) {
+          console.error("Error checking follow status:", followError);
+        } else {
+          setIsFollowing(!!follow);
+        }
+      }
     } finally {
       setRefreshing(false);
+    }
+  }
+
+  async function toggleFollow() {
+    if (!userId || !currentUserId || currentUserId === userId) {
+      return;
+    }
+
+    setFollowLoading(true);
+
+    try {
+      if (isFollowing) {
+        const { error } = await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", currentUserId)
+          .eq("following_id", userId);
+
+        if (error) {
+          console.error("Error unfollowing user:", error);
+          return;
+        }
+
+        setIsFollowing(false);
+        setFollowerCount((count) => Math.max(0, count - 1));
+      } else {
+        const { error } = await supabase.from("follows").insert({
+          follower_id: currentUserId,
+          following_id: userId,
+        });
+
+        if (error) {
+          console.error("Error following user:", error);
+          return;
+        }
+
+        setIsFollowing(true);
+        setFollowerCount((count) => count + 1);
+      }
+    } finally {
+      setFollowLoading(false);
     }
   }
 
   useEffect(() => {
     refreshData();
   }, [userId]);
+
+  const isOwnProfile = currentUserId === userId;
 
   return (
     <>
@@ -73,7 +173,9 @@ export default function ProfileScreen() {
           headerBackTitle: "",
         }}
       />
+
       <Back />
+
       <View
         style={[
           styles.container,
@@ -83,6 +185,7 @@ export default function ProfileScreen() {
         <Pressable style={styles.settingsButton}>
           <GlassView isInteractive style={styles.glassButton}>
             <Octicons name="bell-slash" size={24} color={Colors[theme].text} />
+
             <MaterialIcons
               name="more-horiz"
               size={24}
@@ -90,7 +193,8 @@ export default function ProfileScreen() {
             />
           </GlassView>
         </Pressable>
-        {profileImage ? (
+
+        {profileImage && (
           <>
             <Image
               source={{ uri: profileImage }}
@@ -101,15 +205,15 @@ export default function ProfileScreen() {
                 position: "absolute",
               }}
             />
+
             <LinearGradient
               colors={["transparent", Colors[theme].background]}
               style={styles.profileImageFade}
               pointerEvents="none"
             />
           </>
-        ) : (
-          <></>
         )}
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
@@ -149,8 +253,9 @@ export default function ProfileScreen() {
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
-                1
+                {followerCount}
               </Text>
+
               <Text
                 style={[styles.statLabel, { color: Colors[theme].secondary }]}
               >
@@ -160,8 +265,9 @@ export default function ProfileScreen() {
 
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
-                1
+                {followingCount}
               </Text>
+
               <Text
                 style={[styles.statLabel, { color: Colors[theme].secondary }]}
               >
@@ -171,8 +277,9 @@ export default function ProfileScreen() {
 
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
-                3
+                {posts.length}
               </Text>
+
               <Text
                 style={[styles.statLabel, { color: Colors[theme].secondary }]}
               >
@@ -181,30 +288,37 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <Pressable style={styles.followButtonContainer}>
-            <GlassView
-              tintColor={Colors.accent}
-              style={styles.followButton}
-              isInteractive
+          {!isOwnProfile && (
+            <Pressable
+              style={styles.followButtonContainer}
+              onPress={toggleFollow}
+              disabled={followLoading}
             >
-              <Text style={styles.followButtonText}>Follow</Text>
-            </GlassView>
-          </Pressable>
+              <GlassView
+                tintColor={
+                  isFollowing ? Colors[theme].separator : Colors.accent
+                }
+                style={styles.followButton}
+                isInteractive
+              >
+                <Text
+                  style={[
+                    styles.followButtonText,
+                    isFollowing && {
+                      color: Colors[theme].text,
+                    },
+                  ]}
+                >
+                  {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
+                </Text>
+              </GlassView>
+            </Pressable>
+          )}
 
           <View style={styles.postSection}>
             <Text style={[styles.sectionTitle, { color: Colors[theme].text }]}>
               Posts
             </Text>
-            {/* {posts.map((post) => (
-              <PostContainer
-                key={post.id}
-                href={{ uri: post.image }}
-                time={post.created_at}
-                author={post.author}
-                pfp={{ uri: post.pfp }}
-                caption={post.caption}
-              />
-            ))} */}
           </View>
         </ScrollView>
       </View>
@@ -225,12 +339,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 16,
     zIndex: 999,
-    top: 60,
-  },
-  editButton: {
-    position: "absolute",
-    left: 16,
-    zIndex: 16,
     top: 60,
   },
 
@@ -267,6 +375,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     overflow: "hidden",
   },
+
   profilePictureImage: {
     width: "100%",
     height: "100%",
@@ -282,14 +391,6 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     marginTop: 3,
-  },
-
-  bio: {
-    fontSize: 15,
-    textAlign: "center",
-    marginTop: 14,
-    maxWidth: 300,
-    lineHeight: 21,
   },
 
   statsContainer: {
@@ -315,9 +416,6 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  section: {
-    marginTop: 32,
-  },
   postSection: {
     marginTop: 16,
     marginHorizontal: -16,
@@ -330,24 +428,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
 
-  emptyPosts: {
-    minHeight: 220,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 12,
-  },
-
-  emptyDescription: {
-    fontSize: 14,
-    marginTop: 5,
-  },
   followButtonContainer: {
     width: "100%",
     height: 52,
@@ -356,6 +436,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     borderRadius: 30,
   },
+
   followButton: {
     width: "100%",
     height: 52,
@@ -363,6 +444,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   followButtonText: {
     color: "#fff",
     fontSize: 17,

@@ -19,10 +19,15 @@ import {
 
 export default function ProfileScreen() {
   const theme = useColorScheme() ?? "light";
+
   const [posts, setPosts] = useState<any[]>([]);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Display Name");
   const [username, setUsername] = useState("username");
+
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
   const [refreshing, setRefreshing] = useState(false);
 
   async function refreshData() {
@@ -36,31 +41,55 @@ export default function ProfileScreen() {
 
       if (userError || !user) {
         console.error("Error fetching auth user:", userError);
-      } else {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("avatar_url, display_name, username")
-          .eq("id", user.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-        } else if (data) {
-          setProfileImage(data.avatar_url ?? null);
-          setDisplayName(data.display_name ?? "Display Name");
-          setUsername(data.username ?? "username");
-        }
+        return;
       }
 
-      const { data, error } = await supabase
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("avatar_url, display_name, username")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+      } else if (profile) {
+        setProfileImage(profile.avatar_url ?? null);
+        setDisplayName(profile.display_name ?? "Display Name");
+        setUsername(profile.username ?? "username");
+      }
+
+      const { data: userPosts, error: postsError } = await supabase
         .from("posts")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching posts:", error);
+      if (postsError) {
+        console.error("Error fetching posts:", postsError);
       } else {
-        setPosts(data ?? []);
+        setPosts(userPosts ?? []);
+      }
+
+      const { count: followers, error: followersError } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", user.id);
+
+      if (followersError) {
+        console.error("Error fetching followers:", followersError);
+      } else {
+        setFollowerCount(followers ?? 0);
+      }
+
+      const { count: following, error: followingError } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("follower_id", user.id);
+
+      if (followingError) {
+        console.error("Error fetching following:", followingError);
+      } else {
+        setFollowingCount(following ?? 0);
       }
     } finally {
       setRefreshing(false);
@@ -79,6 +108,7 @@ export default function ProfileScreen() {
           headerBackTitle: "",
         }}
       />
+
       <View
         style={[
           styles.container,
@@ -97,6 +127,7 @@ export default function ProfileScreen() {
             />
           </GlassView>
         </Pressable>
+
         <Pressable
           style={styles.editButton}
           onPress={() => router.push("/editProfile")}
@@ -105,7 +136,8 @@ export default function ProfileScreen() {
             <Ionicons name="pencil" color={Colors[theme].text} size={24} />
           </GlassView>
         </Pressable>
-        {profileImage ? (
+
+        {profileImage && (
           <>
             <Image
               source={{ uri: profileImage }}
@@ -116,15 +148,15 @@ export default function ProfileScreen() {
                 position: "absolute",
               }}
             />
+
             <LinearGradient
               colors={["transparent", Colors[theme].background]}
               style={styles.profileImageFade}
               pointerEvents="none"
             />
           </>
-        ) : (
-          <></>
         )}
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
@@ -164,8 +196,9 @@ export default function ProfileScreen() {
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
-                1
+                {followerCount}
               </Text>
+
               <Text
                 style={[styles.statLabel, { color: Colors[theme].secondary }]}
               >
@@ -175,8 +208,9 @@ export default function ProfileScreen() {
 
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
-                1
+                {followingCount}
               </Text>
+
               <Text
                 style={[styles.statLabel, { color: Colors[theme].secondary }]}
               >
@@ -186,8 +220,9 @@ export default function ProfileScreen() {
 
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
-                3
+                {posts.length}
               </Text>
+
               <Text
                 style={[styles.statLabel, { color: Colors[theme].secondary }]}
               >
@@ -200,6 +235,7 @@ export default function ProfileScreen() {
             <Text style={[styles.sectionTitle, { color: Colors[theme].text }]}>
               Posts
             </Text>
+
             {posts.map((post) => (
               <PostContainer
                 key={post.id}
