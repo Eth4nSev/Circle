@@ -77,7 +77,7 @@ export default function SignUp() {
 							Join Circle and start connecting
 						</Text>
 
-						<AppleButton />
+						{/*<AppleButton />
 						<GoogleButton />
 
 						<View style={styles.separatorContainer}>
@@ -88,7 +88,7 @@ export default function SignUp() {
 							</Text>
 
 							<Separator />
-						</View>
+						</View>*/}
 
 						<SignUpInput
 							email={email}
