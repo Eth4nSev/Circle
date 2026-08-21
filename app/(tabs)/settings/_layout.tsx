@@ -8,7 +8,7 @@ export default function settingsLayout() {
         options={{
           title: "Profile",
           headerTransparent: true,
-          headerBackTitle: "",
+          headerBackButtonDisplayMode: "minimal",
         }}
       />
       <Stack.Screen
@@ -16,7 +16,15 @@ export default function settingsLayout() {
         options={{
           title: "Settings",
           headerTransparent: true,
-          headerBackTitle: "",
+          headerBackButtonDisplayMode: "minimal",
+        }}
+      />
+      <Stack.Screen
+        name="privacy-security"
+        options={{
+          title: "Privacy & Security",
+          headerTransparent: true,
+          headerBackButtonDisplayMode: "minimal",
         }}
       />
     </Stack>

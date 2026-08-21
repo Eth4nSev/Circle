@@ -194,7 +194,10 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
+            <Pressable
+              onPress={() => router.push("/followers")}
+              style={styles.statCard}
+            >
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 {followerCount}
               </Text>
@@ -204,9 +207,12 @@ export default function ProfileScreen() {
               >
                 Followers
               </Text>
-            </View>
+            </Pressable>
 
-            <View style={styles.statCard}>
+            <Pressable
+              onPress={() => router.push("/following")}
+              style={styles.statCard}
+            >
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 {followingCount}
               </Text>
@@ -216,7 +222,7 @@ export default function ProfileScreen() {
               >
                 Following
               </Text>
-            </View>
+            </Pressable>
 
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>

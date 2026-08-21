@@ -2,14 +2,17 @@
   "expo": {
     "name": "Circle",
     "slug": "Circle",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "circle",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app requires Face ID to secure your private dashboard."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +40,12 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow this app to use Face ID."
         }
       ]
     ],

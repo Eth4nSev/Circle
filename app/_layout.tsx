@@ -154,6 +154,34 @@ export default function RootLayout() {
           },
         }}
       />
+      <Stack.Screen
+        name="followers"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          gestureEnabled: true,
+          sheetAllowedDetents: [0.5, 1],
+          contentStyle: {
+            backgroundColor: isLiquidGlassAvailable()
+              ? "transparent"
+              : Colors[theme].background,
+          },
+        }}
+      />
+      <Stack.Screen
+        name="following"
+        options={{
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          gestureEnabled: true,
+          sheetAllowedDetents: [0.5, 1],
+          contentStyle: {
+            backgroundColor: isLiquidGlassAvailable()
+              ? "transparent"
+              : Colors[theme].background,
+          },
+        }}
+      />
     </Stack>
   );
 }

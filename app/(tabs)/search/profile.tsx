@@ -2,11 +2,12 @@ import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import { Colors } from "@/styles/colors";
 import { MaterialIcons, Octicons } from "@expo/vector-icons";
-import { GlassView } from "expo-glass-effect";
+import { GlassContainer, GlassView } from "expo-glass-effect";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   RefreshControl,
@@ -182,17 +183,47 @@ export default function ProfileScreen() {
           { backgroundColor: Colors[theme].background },
         ]}
       >
-        <Pressable style={styles.settingsButton}>
-          <GlassView isInteractive style={styles.glassButton}>
-            <Octicons name="bell-slash" size={24} color={Colors[theme].text} />
+        <View style={styles.settingsButton}>
+          <GlassContainer style={styles.glassButtonContainer} spacing={10}>
+            <GlassView isInteractive style={styles.glassButton}>
+              <Octicons name="share" size={24} color={Colors[theme].text} />
+              <Octicons
+                name="bell-slash"
+                size={24}
+                color={Colors[theme].text}
+              />
+            </GlassView>
+            <GlassView isInteractive style={styles.glassButtonMini}>
+              <Pressable>
+                <MaterialIcons
+                  name="more-horiz"
+                  size={24}
+                  color={Colors[theme].text}
+                />
+              </Pressable>
+            </GlassView>
+          </GlassContainer>
 
-            <MaterialIcons
-              name="more-horiz"
-              size={24}
-              color={Colors[theme].text}
-            />
-          </GlassView>
-        </Pressable>
+          {/* <GlassView style={styles.contextMenu} isInteractive>
+            <Pressable style={styles.contextMenuItem}>
+              <Ionicons name="share" size={20} color={Colors[theme].text} />
+              <Text
+                style={[styles.contextMenuText, { color: Colors[theme].text }]}
+              >
+                Share Profile Link
+              </Text>
+            </Pressable>
+
+            <Pressable style={styles.contextMenuItem}>
+              <Ionicons name="flag" size={20} color={Colors[theme].text} />
+              <Text
+                style={[styles.contextMenuText, { color: Colors[theme].text }]}
+              >
+                Report User
+              </Text>
+            </Pressable>
+          </GlassView> */}
+        </View>
 
         {profileImage && (
           <>
@@ -262,7 +293,6 @@ export default function ProfileScreen() {
                 Followers
               </Text>
             </View>
-
             <View style={styles.statCard}>
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 {followingCount}
@@ -309,7 +339,13 @@ export default function ProfileScreen() {
                     },
                   ]}
                 >
-                  {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
+                  {followLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : isFollowing ? (
+                    "Following"
+                  ) : (
+                    "Follow"
+                  )}
                 </Text>
               </GlassView>
             </Pressable>
@@ -350,14 +386,51 @@ const styles = StyleSheet.create({
     height: 300,
   },
 
+  glassButtonContainer: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   glassButton: {
     width: 100,
     flexDirection: "row",
-    gap: 20,
+    gap: 25,
     height: 50,
     borderRadius: 50,
     justifyContent: "center",
     alignItems: "center",
+  },
+  glassButtonMini: {
+    width: 50,
+    flexDirection: "row",
+    gap: 25,
+    height: 50,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  contextMenu: {
+    position: "absolute",
+    top: 58,
+    right: 0,
+    width: 210,
+    borderRadius: 18,
+    paddingVertical: 6,
+  },
+
+  contextMenuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
+  contextMenuText: {
+    fontSize: 15,
   },
 
   profileHeader: {
