@@ -62,7 +62,7 @@ export default function LogIn() {
 							Log in to continue to Circle
 						</Text>
 
-						<AppleButton />
+						{/*<AppleButton />
 						<GoogleButton />
 
 						<View style={styles.separatorContainer}>
@@ -71,7 +71,7 @@ export default function LogIn() {
 								or
 							</Text>
 							<Separator />
-						</View>
+						</View>*/}
 
 						<View style={styles.form}>
 							<LoginInput
