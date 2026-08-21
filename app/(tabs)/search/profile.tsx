@@ -1,10 +1,10 @@
 import { supabase } from "@/app/utils/supabase";
-import PostContainer from "@/components/post";
+import Back from "@/components/Back";
 import { Colors } from "@/styles/colors";
 import { MaterialIcons, Octicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { LinearGradient } from "expo-linear-gradient";
-import { Stack } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Image,
@@ -19,6 +19,7 @@ import {
 
 export default function ProfileScreen() {
   const theme = useColorScheme() ?? "light";
+  const { userId } = useLocalSearchParams<{ userId: string }>();
   const [posts, setPosts] = useState<any[]>([]);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Display Name");
@@ -29,38 +30,32 @@ export default function ProfileScreen() {
     setRefreshing(true);
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      if (!userId) return;
 
-      if (userError || !user) {
-        console.error("Error fetching auth user:", userError);
-      } else {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("avatar_url, display_name, username")
-          .eq("id", user.id)
-          .single();
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, avatar_url, display_name, username")
+        .eq("id", userId)
+        .single();
 
-        if (error) {
-          console.error("Error fetching profile:", error);
-        } else if (data) {
-          setProfileImage(data.avatar_url ?? null);
-          setDisplayName(data.display_name ?? "Display Name");
-          setUsername(data.username ?? "username");
-        }
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+      } else if (profile) {
+        setProfileImage(profile.avatar_url ?? null);
+        setDisplayName(profile.display_name ?? "Display Name");
+        setUsername(profile.username ?? "username");
       }
 
-      const { data, error } = await supabase
+      const { data: userPosts, error: postsError } = await supabase
         .from("posts")
         .select("*")
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching posts:", error);
+      if (postsError) {
+        console.error("Error fetching posts:", postsError);
       } else {
-        setPosts(data ?? []);
+        setPosts(userPosts ?? []);
       }
     } finally {
       setRefreshing(false);
@@ -69,7 +64,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     refreshData();
-  }, []);
+  }, [userId]);
 
   return (
     <>
@@ -78,6 +73,7 @@ export default function ProfileScreen() {
           headerBackTitle: "",
         }}
       />
+      <Back />
       <View
         style={[
           styles.container,
@@ -87,6 +83,11 @@ export default function ProfileScreen() {
         <Pressable style={styles.settingsButton}>
           <GlassView isInteractive style={styles.glassButton}>
             <Octicons name="bell-slash" size={24} color={Colors[theme].text} />
+            <MaterialIcons
+              name="more-horiz"
+              size={24}
+              color={Colors[theme].text}
+            />
           </GlassView>
         </Pressable>
         {profileImage ? (
@@ -180,21 +181,21 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* <Pressable style={styles.followButtonContainer}>
-					<GlassView
-						tintColor={Colors.accent}
-						style={styles.followButton}
-						isInteractive
-					>
-						<Text style={styles.followButtonText}>Follow</Text>
-					</GlassView>
-				</Pressable> */}
+          <Pressable style={styles.followButtonContainer}>
+            <GlassView
+              tintColor={Colors.accent}
+              style={styles.followButton}
+              isInteractive
+            >
+              <Text style={styles.followButtonText}>Follow</Text>
+            </GlassView>
+          </Pressable>
 
           <View style={styles.postSection}>
             <Text style={[styles.sectionTitle, { color: Colors[theme].text }]}>
               Posts
             </Text>
-            {posts.map((post) => (
+            {/* {posts.map((post) => (
               <PostContainer
                 key={post.id}
                 href={{ uri: post.image }}
@@ -203,7 +204,7 @@ export default function ProfileScreen() {
                 pfp={{ uri: post.pfp }}
                 caption={post.caption}
               />
-            ))}
+            ))} */}
           </View>
         </ScrollView>
       </View>
@@ -242,7 +243,9 @@ const styles = StyleSheet.create({
   },
 
   glassButton: {
-    width: 50,
+    width: 100,
+    flexDirection: "row",
+    gap: 20,
     height: 50,
     borderRadius: 50,
     justifyContent: "center",

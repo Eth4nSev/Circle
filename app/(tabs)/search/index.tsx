@@ -160,7 +160,14 @@ export default function SearchScreen() {
                     styles.profile,
                     pressed && styles.profilePressed,
                   ]}
-                  onPress={() => router.push("/(tabs)/search/profile")}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(tabs)/search/profile",
+                      params: {
+                        userId: profile.id,
+                      },
+                    })
+                  }
                 >
                   <View style={styles.avatarContainer}>
                     {profile.avatar_url ? (

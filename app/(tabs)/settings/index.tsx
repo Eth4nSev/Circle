@@ -196,16 +196,6 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* <Pressable style={styles.followButtonContainer}>
-					<GlassView
-						tintColor={Colors.accent}
-						style={styles.followButton}
-						isInteractive
-					>
-						<Text style={styles.followButtonText}>Follow</Text>
-					</GlassView>
-				</Pressable> */}
-
           <View style={styles.postSection}>
             <Text style={[styles.sectionTitle, { color: Colors[theme].text }]}>
               Posts
