@@ -1,5 +1,6 @@
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
+import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { MaterialIcons, Octicons } from "@expo/vector-icons";
 import { GlassContainer, GlassView } from "expo-glass-effect";
@@ -355,6 +356,16 @@ export default function ProfileScreen() {
             <Text style={[styles.sectionTitle, { color: Colors[theme].text }]}>
               Posts
             </Text>
+
+            {posts.map((post) => (
+              <PostContainer
+                userId={post.user_id}
+                id={post.id}
+                time={post.created_at}
+                href={post.image}
+                caption={post.caption}
+              />
+            ))}
           </View>
         </ScrollView>
       </View>

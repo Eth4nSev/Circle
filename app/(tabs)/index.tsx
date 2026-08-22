@@ -3,7 +3,13 @@ import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { GlassView } from "expo-glass-effect";
 import { useEffect, useRef, useState } from "react";
-import { Animated, RefreshControl, Text, useColorScheme, View } from "react-native";
+import {
+  Animated,
+  RefreshControl,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 import { supabase } from "../utils/supabase";
 
 export default function Index() {
@@ -86,11 +92,10 @@ export default function Index() {
         </View>
         {posts.map((post) => (
           <PostContainer
-            key={post.id}
-            href={{ uri: post.image }}
+            userId={post.user_id}
+            id={post.id}
             time={post.created_at}
-            author={post.author}
-            pfp={{ uri: post.pfp }}
+            href={post.image}
             caption={post.caption}
           />
         ))}

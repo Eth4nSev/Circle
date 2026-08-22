@@ -244,11 +244,10 @@ export default function ProfileScreen() {
 
             {posts.map((post) => (
               <PostContainer
-                key={post.id}
-                href={{ uri: post.image }}
+                userId={post.user_id}
+                id={post.id}
                 time={post.created_at}
-                author={post.author}
-                pfp={{ uri: post.pfp }}
+                href={post.image}
                 caption={post.caption}
               />
             ))}
