@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   settingsItemPressed: {
     opacity: 0.7,
-    backgroundColor: "#555",
+    backgroundColor: "#999",
     borderRadius: 20,
   },
   settingsText: {

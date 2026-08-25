@@ -11,6 +11,7 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   useColorScheme,
@@ -196,7 +197,10 @@ export default function ProfileScreen() {
           <View style={styles.statsContainer}>
             <Pressable
               onPress={() => router.push("/followers")}
-              style={styles.statCard}
+              style={[
+                styles.statCard,
+                { backgroundColor: Colors[theme].stats },
+              ]}
             >
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 {followerCount}
@@ -211,7 +215,10 @@ export default function ProfileScreen() {
 
             <Pressable
               onPress={() => router.push("/following")}
-              style={styles.statCard}
+              style={[
+                styles.statCard,
+                { backgroundColor: Colors[theme].stats },
+              ]}
             >
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 {followingCount}
@@ -224,7 +231,12 @@ export default function ProfileScreen() {
               </Text>
             </Pressable>
 
-            <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statCard,
+                { backgroundColor: Colors[theme].stats },
+              ]}
+            >
               <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
                 {posts.length}
               </Text>
@@ -254,6 +266,7 @@ export default function ProfileScreen() {
           </View>
         </ScrollView>
       </View>
+      <StatusBar barStyle={"light-content"} />
     </>
   );
 }
