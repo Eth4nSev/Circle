@@ -187,15 +187,15 @@ export default function ProfileScreen() {
       >
         <View style={styles.settingsButton}>
           <GlassContainer style={styles.glassButtonContainer} spacing={10}>
-            <GlassView isInteractive style={styles.glassButton}>
-              <Octicons name="share" size={24} color={Colors[theme].text} />
-              <Octicons
-                name="bell-slash"
-                size={24}
-                color={Colors[theme].text}
-              />
-            </GlassView>
             <GlassView isInteractive style={styles.glassButtonMini}>
+              <GlassView isInteractive style={styles.glassButton}>
+                {/* <Octicons name="share" size={24} color={Colors[theme].text} /> */}
+                <Octicons
+                  name="bell-slash"
+                  size={24}
+                  color={Colors[theme].text}
+                />
+              </GlassView>
               <Pressable>
                 <MaterialIcons
                   name="more-horiz"
