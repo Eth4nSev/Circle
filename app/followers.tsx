@@ -1,6 +1,7 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -123,71 +124,93 @@ export default function Followers() {
   }
 
   return (
-    <View style={[styles.container]}>
-      <FlatList
-        data={followers}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={
-          followers.length === 0 ? styles.emptyContainer : styles.list
-        }
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.follower}
-            onPress={() => openProfile(item.id)}
-          >
-            {item.avatar_url ? (
-              <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
-            ) : (
-              <View
-                style={[
-                  styles.avatar,
-                  styles.placeholder,
-                  { backgroundColor: colors.card },
-                ]}
-              >
-                <Ionicons name="person" size={22} color={colors.secondary} />
-              </View>
-            )}
+    <>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: colors.text }]}>Edit Profile</Text>
+        <GlassView
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 50,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          isInteractive
+        >
+          <Pressable onPress={() => router.back()}>
+            <MaterialIcons name="close" size={28} color={colors.text} />
+          </Pressable>
+        </GlassView>
+      </View>
+      <View style={[styles.container]}>
+        <FlatList
+          data={followers}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={
+            followers.length === 0 ? styles.emptyContainer : styles.list
+          }
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <Pressable
+              style={styles.follower}
+              onPress={() => openProfile(item.id)}
+            >
+              {item.avatar_url ? (
+                <Image
+                  source={{ uri: item.avatar_url }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.avatar,
+                    styles.placeholder,
+                    { backgroundColor: colors.card },
+                  ]}
+                >
+                  <Ionicons name="person" size={22} color={colors.secondary} />
+                </View>
+              )}
 
-            <View style={styles.info}>
-              <Text
-                numberOfLines={1}
-                style={[styles.displayName, { color: colors.text }]}
-              >
-                {item.display_name || item.username || "User"}
-              </Text>
-
-              {item.username && (
+              <View style={styles.info}>
                 <Text
                   numberOfLines={1}
-                  style={[styles.username, { color: colors.secondary }]}
+                  style={[styles.displayName, { color: colors.text }]}
                 >
-                  @{item.username}
+                  {item.display_name || item.username || "User"}
                 </Text>
-              )}
+
+                {item.username && (
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.username, { color: colors.secondary }]}
+                  >
+                    @{item.username}
+                  </Text>
+                )}
+              </View>
+            </Pressable>
+          )}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons
+                name="people-outline"
+                size={42}
+                color={colors.secondary}
+              />
+
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                No followers yet
+              </Text>
+
+              <Text style={[styles.emptySubtitle, { color: colors.secondary }]}>
+                When someone follows you, they'll appear here.
+              </Text>
             </View>
-          </Pressable>
-        )}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons
-              name="people-outline"
-              size={42}
-              color={colors.secondary}
-            />
-
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>
-              No followers yet
-            </Text>
-
-            <Text style={[styles.emptySubtitle, { color: colors.secondary }]}>
-              When someone follows you, they'll appear here.
-            </Text>
-          </View>
-        }
-      />
-    </View>
+          }
+        />
+      </View>
+    </>
   );
 }
 
@@ -203,6 +226,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
   },
   avatar: {
     width: 52,
