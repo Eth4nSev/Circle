@@ -95,6 +95,7 @@ export default function Index() {
         </View>
         {posts.map((post) => (
           <PostContainer
+            key={post.id}
             userId={post.user_id}
             id={post.id}
             time={post.created_at}

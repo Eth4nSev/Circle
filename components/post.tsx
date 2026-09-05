@@ -1,6 +1,8 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
-import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Button, Host, Menu } from "@expo/ui/swift-ui";
+import { labelStyle } from "@expo/ui/swift-ui/modifiers";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -9,7 +11,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -356,13 +357,16 @@ export default function PostContainer({
           </Link> */}
 
           <View style={styles.morePostOptions}>
-            <Pressable ref={moreButtonRef} onPress={openPostMenu} hitSlop={10}>
-              <MaterialIcons
-                name="more-horiz"
-                size={iconSize}
-                color={colors.text}
-              />
-            </Pressable>
+            <Host matchContents>
+              <Menu
+                label="More Options"
+                systemImage="ellipsis"
+                modifiers={[labelStyle("iconOnly")]}
+              >
+                <Button systemImage="exclamationmark.bubble" label="Report" />
+                <Button systemImage="trash" label="Delete" role="destructive" />
+              </Menu>
+            </Host>
           </View>
         </View>
 
@@ -372,35 +376,6 @@ export default function PostContainer({
           </Text>
         ) : null}
       </GlassView>
-
-      <Modal
-        visible={menuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <Pressable
-          style={styles.menuOverlay}
-          onPress={() => setMenuVisible(false)}
-        >
-          <View
-            style={[
-              styles.contextMenu,
-              {
-                top: menuPosition.top,
-                right: menuPosition.right,
-                backgroundColor: colors.background,
-              },
-            ]}
-          >
-            <Pressable style={styles.menuItem} onPress={deletePost}>
-              <MaterialIcons name="delete-outline" size={22} color="#ff3b30" />
-
-              <Text style={styles.deleteText}>Delete Post</Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
     </>
   );
 }
