@@ -14,7 +14,7 @@ export default function emojiReact() {
     >
       <Text
         style={{
-          color: Colors[theme].text,
+          color: Colors[theme as "light" | "dark"].text,
           marginVertical: 30,
           fontWeight: "bold",
         }}

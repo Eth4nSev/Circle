@@ -40,7 +40,12 @@ export default function SettingsLink({
         <Text style={{ fontSize: 17, color: "#0188fe" }}>{title}</Text>
       ) : (
         <>
-          <Text style={[styles.settingsText, { color: Colors[theme].text }]}>
+          <Text
+            style={[
+              styles.settingsText,
+              { color: Colors[theme as "light" | "dark"].text },
+            ]}
+          >
             {title}
           </Text>
           <View style={styles.settingsValueContainer}>

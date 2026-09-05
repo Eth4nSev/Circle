@@ -20,7 +20,7 @@ import {
 
 export default function NewPost() {
   const theme = useColorScheme() ?? "light";
-  const colors = Colors[theme];
+  const colors = Colors[theme as "light" | "dark"];
 
   const [image, setImage] = useState<string | null>(null);
   const [caption, setCaption] = useState("");

@@ -25,7 +25,7 @@ type Profile = {
 
 export default function SearchScreen() {
   const theme = useColorScheme() ?? "light";
-  const colors = Colors[theme];
+  const colors = Colors[theme as "light" | "dark"];
 
   const [query, setQuery] = useState("");
   const [profiles, setProfiles] = useState<Profile[]>([]);

@@ -24,7 +24,7 @@ type Profile = {
 
 export default function Followers() {
   const theme = useColorScheme() ?? "light";
-  const colors = Colors[theme];
+  const colors = Colors[theme as "light" | "dark"];
 
   const [followers, setFollowers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);

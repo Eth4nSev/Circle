@@ -22,13 +22,16 @@ export default function LoginInput({
       style={[
         styles.container,
         {
-          backgroundColor: Colors[theme].login,
-          borderColor: Colors[theme].separator,
+          backgroundColor: Colors[theme as "light" | "dark"].login,
+          borderColor: Colors[theme as "light" | "dark"].separator,
         },
       ]}
     >
       <TextInput
-        style={[styles.input, { color: Colors[theme].text }]}
+        style={[
+          styles.input,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
         placeholder="Email"
         placeholderTextColor={
           theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)"
@@ -47,7 +50,10 @@ export default function LoginInput({
       </View>
 
       <TextInput
-        style={[styles.input, { color: Colors[theme].text }]}
+        style={[
+          styles.input,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
         placeholder="Password"
         placeholderTextColor={
           theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)"

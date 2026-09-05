@@ -12,7 +12,7 @@ export default function Back() {
       <GlassView isInteractive style={styles.glassButton}>
         <Entypo
           name="chevron-small-left"
-          color={Colors[theme].text}
+          color={Colors[theme as "light" | "dark"].text}
           size={45}
         />
       </GlassView>

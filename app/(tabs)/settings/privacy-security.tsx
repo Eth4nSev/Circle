@@ -49,7 +49,7 @@ export default function PrivacySecurity() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor: Colors[theme].background }}
+      style={{ backgroundColor: Colors[theme as "light" | "dark"].background }}
     >
       <SettingsContainer>
         <SettingsItem title="Test" />

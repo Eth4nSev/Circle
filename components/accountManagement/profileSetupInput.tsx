@@ -24,14 +24,17 @@ export default function ProfileSetupInput({
       style={[
         styles.container,
         {
-          backgroundColor: Colors[theme].login,
+          backgroundColor: Colors[theme as "light" | "dark"].login,
           borderColor:
             theme === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)",
         },
       ]}
     >
       <TextInput
-        style={[styles.input, { color: Colors[theme].text }]}
+        style={[
+          styles.input,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
         placeholder="Display name"
         placeholderTextColor={
           theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)"
@@ -50,7 +53,10 @@ export default function ProfileSetupInput({
       </View>
 
       <TextInput
-        style={[styles.input, { color: Colors[theme].text }]}
+        style={[
+          styles.input,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
         placeholder="Username"
         placeholderTextColor={
           theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)"

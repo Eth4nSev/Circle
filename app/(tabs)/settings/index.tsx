@@ -113,7 +113,7 @@ export default function ProfileScreen() {
       <View
         style={[
           styles.container,
-          { backgroundColor: Colors[theme].background },
+          { backgroundColor: Colors[theme as "light" | "dark"].background },
         ]}
       >
         <Pressable
@@ -124,7 +124,7 @@ export default function ProfileScreen() {
             <MaterialIcons
               name="settings"
               size={24}
-              color={Colors[theme].text}
+              color={Colors[theme as "light" | "dark"].text}
             />
           </GlassView>
         </Pressable>
@@ -134,7 +134,11 @@ export default function ProfileScreen() {
           onPress={() => router.push("/editProfile")}
         >
           <GlassView isInteractive style={styles.glassButton}>
-            <Ionicons name="pencil" color={Colors[theme].text} size={24} />
+            <Ionicons
+              name="pencil"
+              color={Colors[theme as "light" | "dark"].text}
+              size={24}
+            />
           </GlassView>
         </Pressable>
 
@@ -151,7 +155,10 @@ export default function ProfileScreen() {
             />
 
             <LinearGradient
-              colors={["transparent", Colors[theme].background]}
+              colors={[
+                "transparent",
+                Colors[theme as "light" | "dark"].background,
+              ]}
               style={styles.profileImageFade}
               pointerEvents="none"
             />
@@ -173,23 +180,35 @@ export default function ProfileScreen() {
                   source={{ uri: profileImage }}
                   style={[
                     styles.profilePictureImage,
-                    { borderColor: Colors[theme].separator },
+                    {
+                      borderColor: Colors[theme as "light" | "dark"].separator,
+                    },
                   ]}
                 />
               ) : (
                 <MaterialIcons
                   name="person"
                   size={55}
-                  color={Colors[theme].secondary}
+                  color={Colors[theme as "light" | "dark"].secondary}
                 />
               )}
             </View>
 
-            <Text style={[styles.displayName, { color: Colors[theme].text }]}>
+            <Text
+              style={[
+                styles.displayName,
+                { color: Colors[theme as "light" | "dark"].text },
+              ]}
+            >
               {displayName}
             </Text>
 
-            <Text style={[styles.username, { color: Colors[theme].secondary }]}>
+            <Text
+              style={[
+                styles.username,
+                { color: Colors[theme as "light" | "dark"].secondary },
+              ]}
+            >
               @{username}
             </Text>
           </View>
@@ -199,15 +218,23 @@ export default function ProfileScreen() {
               onPress={() => router.push("/followers")}
               style={[
                 styles.statCard,
-                { backgroundColor: Colors[theme].stats },
+                { backgroundColor: Colors[theme as "light" | "dark"].stats },
               ]}
             >
-              <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
+              <Text
+                style={[
+                  styles.statNumber,
+                  { color: Colors[theme as "light" | "dark"].text },
+                ]}
+              >
                 {followerCount}
               </Text>
 
               <Text
-                style={[styles.statLabel, { color: Colors[theme].secondary }]}
+                style={[
+                  styles.statLabel,
+                  { color: Colors[theme as "light" | "dark"].secondary },
+                ]}
               >
                 Followers
               </Text>
@@ -217,15 +244,23 @@ export default function ProfileScreen() {
               onPress={() => router.push("/following")}
               style={[
                 styles.statCard,
-                { backgroundColor: Colors[theme].stats },
+                { backgroundColor: Colors[theme as "light" | "dark"].stats },
               ]}
             >
-              <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
+              <Text
+                style={[
+                  styles.statNumber,
+                  { color: Colors[theme as "light" | "dark"].text },
+                ]}
+              >
                 {followingCount}
               </Text>
 
               <Text
-                style={[styles.statLabel, { color: Colors[theme].secondary }]}
+                style={[
+                  styles.statLabel,
+                  { color: Colors[theme as "light" | "dark"].secondary },
+                ]}
               >
                 Following
               </Text>
@@ -234,15 +269,23 @@ export default function ProfileScreen() {
             <View
               style={[
                 styles.statCard,
-                { backgroundColor: Colors[theme].stats },
+                { backgroundColor: Colors[theme as "light" | "dark"].stats },
               ]}
             >
-              <Text style={[styles.statNumber, { color: Colors[theme].text }]}>
+              <Text
+                style={[
+                  styles.statNumber,
+                  { color: Colors[theme as "light" | "dark"].text },
+                ]}
+              >
                 {posts.length}
               </Text>
 
               <Text
-                style={[styles.statLabel, { color: Colors[theme].secondary }]}
+                style={[
+                  styles.statLabel,
+                  { color: Colors[theme as "light" | "dark"].secondary },
+                ]}
               >
                 Posts
               </Text>
@@ -250,7 +293,12 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.postSection}>
-            <Text style={[styles.sectionTitle, { color: Colors[theme].text }]}>
+            <Text
+              style={[
+                styles.sectionTitle,
+                { color: Colors[theme as "light" | "dark"].text },
+              ]}
+            >
               Posts
             </Text>
 

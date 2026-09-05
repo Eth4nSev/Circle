@@ -3,13 +3,13 @@ import { Image, StyleSheet, Text, useColorScheme, View } from "react-native";
 
 export default function OutageScreen() {
   const theme = useColorScheme() ?? "dark";
-  const colors = Colors[theme];
+  const colors = Colors[theme as "light" | "dark"];
 
   return (
     <View
       style={[
         styles.container,
-        { backgroundColor: OutageColors[theme].background },
+        { backgroundColor: OutageColors[theme as "light" | "dark"].background },
       ]}
     >
       <View style={styles.content}>

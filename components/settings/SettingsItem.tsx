@@ -23,7 +23,12 @@ export default function SettingsItem({
 
   return (
     <View style={styles.settingsItem}>
-      <Text style={[styles.settingsText, { color: Colors[theme].text }]}>
+      <Text
+        style={[
+          styles.settingsText,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
+      >
         {title}
       </Text>
       {selected && <MaterialIcons name="check" size={20} color={"#0188fe"} />}

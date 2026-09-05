@@ -29,13 +29,16 @@ export default function SignUpInput({
       style={[
         styles.container,
         {
-          backgroundColor: Colors[theme].login,
-          borderColor: Colors[theme].separator,
+          backgroundColor: Colors[theme as "light" | "dark"].login,
+          borderColor: Colors[theme as "light" | "dark"].separator,
         },
       ]}
     >
       <TextInput
-        style={[styles.input, { color: Colors[theme].text }]}
+        style={[
+          styles.input,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
         placeholder="Email"
         placeholderTextColor={placeholderColor}
         value={email}
@@ -50,7 +53,10 @@ export default function SignUpInput({
       <Separator />
 
       <TextInput
-        style={[styles.input, { color: Colors[theme].text }]}
+        style={[
+          styles.input,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
         placeholder="Password"
         placeholderTextColor={placeholderColor}
         value={password}
@@ -65,7 +71,10 @@ export default function SignUpInput({
       <Separator />
 
       <TextInput
-        style={[styles.input, { color: Colors[theme].text }]}
+        style={[
+          styles.input,
+          { color: Colors[theme as "light" | "dark"].text },
+        ]}
         placeholder="Confirm password"
         placeholderTextColor={placeholderColor}
         value={confirmPassword}

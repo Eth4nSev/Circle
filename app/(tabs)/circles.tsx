@@ -7,12 +7,14 @@ export default function Index() {
   return (
     <ScrollView
       style={{
-        backgroundColor: Colors[theme].background,
+        backgroundColor: Colors[theme as "light" | "dark"].background,
         flex: 1,
       }}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={{ color: Colors[theme].text }}>Circles Page</Text>
+      <Text style={{ color: Colors[theme as "light" | "dark"].text }}>
+        Circles Page
+      </Text>
     </ScrollView>
   );
 }

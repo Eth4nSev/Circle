@@ -32,7 +32,7 @@ export default function SettingsContainer({
       <View
         style={[
           styles.settingsContainer,
-          { backgroundColor: Colors[theme].card },
+          { backgroundColor: Colors[theme as "light" | "dark"].card },
         ]}
       >
         {items.map((children, index) => (

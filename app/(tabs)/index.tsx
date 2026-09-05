@@ -51,13 +51,16 @@ export default function Index() {
   return (
     <>
       <Animated.ScrollView
-        style={{ backgroundColor: Colors[theme].background, flex: 1 }}
+        style={{
+          backgroundColor: Colors[theme as "light" | "dark"].background,
+          flex: 1,
+        }}
         contentInsetAdjustmentBehavior="automatic"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => getPosts(true)}
-            tintColor={Colors[theme].text}
+            tintColor={Colors[theme as "light" | "dark"].text}
           />
         }
         onScroll={Animated.event(
@@ -81,7 +84,7 @@ export default function Index() {
           >
             <Text
               style={{
-                color: Colors[theme].text,
+                color: Colors[theme as "light" | "dark"].text,
                 fontWeight: "bold",
                 fontSize: 20,
               }}
