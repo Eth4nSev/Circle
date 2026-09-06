@@ -33,7 +33,10 @@ export default function SettingsLink({
       onPress={() => router.push(href as any)}
       style={({ pressed }) => [
         styles.settingsItem,
-        pressed && styles.settingsItemPressed,
+        pressed && [
+          styles.settingsItemPressed,
+          { backgroundColor: Colors[theme as "light" | "dark"].cardSelection },
+        ],
       ]}
     >
       {type === "external" ? (
@@ -69,7 +72,6 @@ const styles = StyleSheet.create({
   },
   settingsItemPressed: {
     opacity: 0.7,
-    backgroundColor: "#999",
     borderRadius: 20,
   },
   settingsText: {

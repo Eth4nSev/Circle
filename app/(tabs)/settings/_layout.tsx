@@ -7,7 +7,6 @@ export default function settingsLayout() {
         name="index"
         options={{
           title: "Profile",
-          headerTransparent: true,
           headerBackButtonDisplayMode: "minimal",
         }}
       />
@@ -16,6 +15,8 @@ export default function settingsLayout() {
         options={{
           title: "Settings",
           headerTransparent: true,
+          headerShadowVisible: true,
+          headerTintColor: undefined,
           headerBackButtonDisplayMode: "minimal",
         }}
       />
@@ -23,7 +24,6 @@ export default function settingsLayout() {
         name="privacy-security"
         options={{
           title: "Privacy & Security",
-          headerTransparent: true,
           headerBackButtonDisplayMode: "minimal",
         }}
       />

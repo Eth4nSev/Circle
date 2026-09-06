@@ -1,7 +1,7 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
 import { Button, Host, Menu } from "@expo/ui/swift-ui";
-import { labelStyle } from "@expo/ui/swift-ui/modifiers";
+import { font, foregroundStyle, labelStyle } from "@expo/ui/swift-ui/modifiers";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
@@ -345,7 +345,7 @@ export default function PostContainer({
           >
             <Ionicons
               name="chatbubble-outline"
-              size={24}
+              size={iconSize}
               color={Colors[theme as "light" | "dark"].text}
             />
           </Pressable>
@@ -361,7 +361,11 @@ export default function PostContainer({
               <Menu
                 label="More Options"
                 systemImage="ellipsis"
-                modifiers={[labelStyle("iconOnly")]}
+                modifiers={[
+                  labelStyle("iconOnly"),
+                  font({ size: 24 }),
+                  foregroundStyle("red"),
+                ]}
               >
                 <Button systemImage="exclamationmark.bubble" label="Report" />
                 <Button systemImage="trash" label="Delete" role="destructive" />
@@ -399,6 +403,7 @@ const styles = StyleSheet.create({
 
   postOptions: {
     flexDirection: "row",
+    alignItems: "center",
     gap: 20,
     marginTop: 10,
   },
@@ -406,6 +411,9 @@ const styles = StyleSheet.create({
   morePostOptions: {
     position: "absolute",
     right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
   },
 
   postAccount: {
