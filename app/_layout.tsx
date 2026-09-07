@@ -161,7 +161,7 @@ export default function RootLayout() {
         name="newPost"
         options={{
           presentation: "formSheet",
-          sheetGrabberVisible: true,
+          sheetGrabberVisible: false,
           sheetAllowedDetents: [1],
           contentStyle: {
             backgroundColor: isLiquidGlassAvailable()
