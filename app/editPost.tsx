@@ -3,34 +3,165 @@ import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    useColorScheme,
+    View,
 } from "react-native";
 
-export default function NewPost() {
+type PostSettingProps = {
+	icon: keyof typeof Ionicons.glyphMap;
+	title: string;
+	description: string;
+	value: boolean;
+	onValueChange: (value: boolean) => void;
+	colors: (typeof Colors)["light"];
+};
+
+function PostSetting({
+	icon,
+	title,
+	description,
+	value,
+	onValueChange,
+	colors,
+}: PostSettingProps) {
+	return (
+		<View style={styles.settingRow}>
+			<View style={styles.settingIcon}>
+				<Ionicons name={icon} size={21} color={colors.text} />
+			</View>
+
+			<View style={styles.settingText}>
+				<Text style={[styles.settingTitle, { color: colors.text }]}>
+					{title}
+				</Text>
+
+				<Text
+					style={[
+						styles.settingDescription,
+						{ color: colors.secondary },
+					]}
+				>
+					{description}
+				</Text>
+			</View>
+
+			<Switch
+				value={value}
+				onValueChange={onValueChange}
+				trackColor={{
+					false: colors.separator,
+					true: Colors.accent,
+				}}
+				thumbColor="#fff"
+				ios_backgroundColor={colors.separator}
+			/>
+		</View>
+	);
+}
+
+export default function EditPost() {
 	const theme = useColorScheme() ?? "light";
 	const colors = Colors[theme as "light" | "dark"];
+
+	const { postId } = useLocalSearchParams<{ postId: string }>();
 
 	const [image, setImage] = useState<string | null>(null);
 	const [imageRatio, setImageRatio] = useState(4 / 5);
 	const [caption, setCaption] = useState("");
+
 	const [allowComments, setAllowComments] = useState(true);
 	const [allowSharing, setAllowSharing] = useState(true);
 	const [allowReactions, setAllowReactions] = useState(true);
+
+	const [loading, setLoading] = useState(true);
 	const [pickingImage, setPickingImage] = useState(false);
-	const [posting, setPosting] = useState(false);
+	const [saving, setSaving] = useState(false);
+
+	useEffect(() => {
+		if (!postId) {
+			Alert.alert("Error", "Post could not be found.");
+			router.back();
+			return;
+		}
+
+		loadPost();
+	}, [postId]);
+
+	async function loadPost() {
+		setLoading(true);
+
+		try {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+
+			if (!user) {
+				Alert.alert("Error", "You must be signed in.");
+				router.back();
+				return;
+			}
+
+			const { data, error } = await supabase
+				.from("posts")
+				.select(
+					"image, caption, allow_comments, allow_sharing, allow_reactions, user_id",
+				)
+				.eq("id", postId)
+				.single();
+
+			if (error || !data) {
+				console.error("Error loading post:", error);
+				Alert.alert("Error", "Unable to load this post.");
+				router.back();
+				return;
+			}
+
+			if (data.user_id !== user.id) {
+				Alert.alert("Not Allowed", "You can only edit your own posts.");
+				router.back();
+				return;
+			}
+
+			setImage(data.image);
+			setCaption(data.caption ?? "");
+			setAllowComments(data.allow_comments ?? true);
+			setAllowSharing(data.allow_sharing ?? true);
+			setAllowReactions(data.allow_reactions ?? true);
+
+			Image.getSize(
+				data.image,
+				(width, height) => {
+					if (width && height) {
+						setImageRatio(width / height);
+					}
+				},
+				() => {
+					setImageRatio(4 / 5);
+				},
+			);
+		} catch (error) {
+			console.error("Error loading post:", error);
+			Alert.alert(
+				"Error",
+				"Something went wrong while loading the post.",
+			);
+			router.back();
+		} finally {
+			setLoading(false);
+		}
+	}
 
 	async function pickImage() {
 		setPickingImage(true);
@@ -58,88 +189,123 @@ export default function NewPost() {
 		}
 	}
 
-	async function createPost() {
-		if (!image) {
-			Alert.alert("Image Required", "Select an image before posting.");
-			return;
-		}
+	async function saveChanges() {
+		if (!image || !postId) return;
 
-		setPosting(true);
+		setSaving(true);
 
 		try {
 			const {
 				data: { user },
-				error: userError,
 			} = await supabase.auth.getUser();
 
-			if (userError || !user) {
-				Alert.alert("Error", "You must be signed in to create a post.");
+			if (!user) {
+				Alert.alert("Error", "You must be signed in.");
 				return;
 			}
 
-			const response = await fetch(image);
-			const arrayBuffer = await response.arrayBuffer();
+			let imageUrl = image;
 
-			const extension =
-				image.split(".").pop()?.split("?")[0]?.toLowerCase() || "jpg";
-
-			const fileName = `${user.id}/${Date.now()}.${extension}`;
-
-			const contentType =
-				extension === "png"
-					? "image/png"
-					: extension === "webp"
-						? "image/webp"
-						: "image/jpeg";
-
-			const { error: uploadError } = await supabase.storage
+			const { data: existingPost, error: postFetchError } = await supabase
 				.from("posts")
-				.upload(fileName, arrayBuffer, {
-					contentType,
-					upsert: false,
-				});
+				.select("image, user_id")
+				.eq("id", postId)
+				.single();
 
-			if (uploadError) {
-				console.error(uploadError);
-				Alert.alert("Upload Failed", uploadError.message);
+			if (postFetchError || !existingPost) {
+				Alert.alert("Error", "Unable to find this post.");
 				return;
 			}
 
-			const { data: publicData } = supabase.storage
+			if (existingPost.user_id !== user.id) {
+				Alert.alert("Not Allowed", "You can only edit your own posts.");
+				return;
+			}
+
+			if (image !== existingPost.image) {
+				const response = await fetch(image);
+				const arrayBuffer = await response.arrayBuffer();
+
+				const extension =
+					image.split(".").pop()?.split("?")[0]?.toLowerCase() ||
+					"jpg";
+
+				const fileName = `${user.id}/${Date.now()}.${extension}`;
+
+				const contentType =
+					extension === "png"
+						? "image/png"
+						: extension === "webp"
+							? "image/webp"
+							: "image/jpeg";
+
+				const { error: uploadError } = await supabase.storage
+					.from("posts")
+					.upload(fileName, arrayBuffer, {
+						contentType,
+						upsert: false,
+					});
+
+				if (uploadError) {
+					console.error(uploadError);
+					Alert.alert("Upload Failed", uploadError.message);
+					return;
+				}
+
+				const { data: publicData } = supabase.storage
+					.from("posts")
+					.getPublicUrl(fileName);
+
+				imageUrl = publicData.publicUrl;
+			}
+
+			const { error: updateError } = await supabase
 				.from("posts")
-				.getPublicUrl(fileName);
+				.update({
+					image: imageUrl,
+					caption: caption.trim() || null,
+					allow_comments: allowComments,
+					allow_sharing: allowSharing,
+					allow_reactions: allowReactions,
+				})
+				.eq("id", postId)
+				.eq("user_id", user.id);
 
-			const { error: postError } = await supabase.from("posts").insert({
-				user_id: user.id,
-				image: publicData.publicUrl,
-				caption: caption.trim() || null,
-				allow_comments: allowComments,
-				allow_sharing: allowSharing,
-				allow_reactions: allowReactions,
-			});
-
-			if (postError) {
-				console.error(postError);
-				Alert.alert("Post Failed", postError.message);
+			if (updateError) {
+				console.error(updateError);
+				Alert.alert("Save Failed", updateError.message);
 				return;
 			}
 
 			router.back();
 		} catch (error) {
-			console.error(error);
+			console.error("Error saving post:", error);
 			Alert.alert(
 				"Error",
-				"Something went wrong while creating your post.",
+				"Something went wrong while saving your changes.",
 			);
 		} finally {
-			setPosting(false);
+			setSaving(false);
 		}
+	}
+
+	if (loading) {
+		return (
+			<View
+				style={[
+					styles.loadingContainer,
+					{ backgroundColor: colors.background },
+				]}
+			>
+				<ActivityIndicator size="large" color={Colors.accent} />
+			</View>
+		);
 	}
 
 	return (
 		<>
 			<ScrollView
-				style={styles.scrollView}
+				style={[styles.scrollView]}
 				contentInsetAdjustmentBehavior="automatic"
 				contentContainerStyle={styles.content}
 				showsVerticalScrollIndicator={false}
@@ -147,13 +313,13 @@ export default function NewPost() {
 			>
 				<View style={styles.header}>
 					<Text style={[styles.title, { color: colors.text }]}>
-						New Post
+						Edit Post
 					</Text>
 				</View>
 
 				<Pressable
 					onPress={pickImage}
-					disabled={pickingImage || posting}
+					disabled={pickingImage || saving}
 				>
 					{image ? (
 						<View
@@ -193,62 +359,7 @@ export default function NewPost() {
 								)}
 							</GlassView>
 						</View>
-					) : (
-						<View style={styles.imagePickerWrapper}>
-							<GlassView
-								style={[
-									styles.imagePicker,
-									{
-										backgroundColor: colors.clear,
-										borderColor: colors.separator,
-									},
-								]}
-							>
-								{pickingImage ? (
-									<ActivityIndicator
-										size="small"
-										color={colors.text}
-									/>
-								) : (
-									<>
-										<View
-											style={[
-												styles.imageIcon,
-												{
-													backgroundColor:
-														Colors.accent,
-												},
-											]}
-										>
-											<Ionicons
-												name="image-outline"
-												size={25}
-												color="#fff"
-											/>
-										</View>
-
-										<Text
-											style={[
-												styles.selectTitle,
-												{ color: colors.text },
-											]}
-										>
-											Select Image
-										</Text>
-
-										<Text
-											style={[
-												styles.selectDescription,
-												{ color: colors.secondary },
-											]}
-										>
-											Choose a photo to share
-										</Text>
-									</>
-								)}
-							</GlassView>
-						</View>
-					)}
+					) : null}
 				</Pressable>
 
 				<View style={styles.captionSection}>
@@ -342,30 +453,32 @@ export default function NewPost() {
 				</View>
 
 				<Pressable
-					onPress={createPost}
-					disabled={!image || posting}
+					onPress={saveChanges}
+					disabled={saving}
 					style={[
-						styles.postButtonContainer,
+						styles.saveButtonContainer,
 						{
-							opacity: image && !posting ? 1 : 0.45,
+							opacity: saving ? 0.45 : 1,
 						},
 					]}
 				>
 					<GlassView
 						tintColor={Colors.accent}
 						isInteractive
-						style={styles.postButton}
+						style={styles.saveButton}
 					>
-						{posting ? (
+						{saving ? (
 							<ActivityIndicator color="#fff" />
 						) : (
 							<>
 								<Ionicons
-									name="paper-plane"
-									size={18}
+									name="checkmark"
+									size={19}
 									color="#fff"
 								/>
-								<Text style={styles.postButtonText}>Post</Text>
+								<Text style={styles.saveButtonText}>
+									Save Changes
+								</Text>
 							</>
 						)}
 					</GlassView>
@@ -374,7 +487,7 @@ export default function NewPost() {
 
 			<Pressable
 				onPress={() => router.back()}
-				disabled={posting}
+				disabled={saving}
 				style={styles.closeButtonContainer}
 			>
 				<GlassView isInteractive style={styles.closeButton}>
@@ -385,59 +498,13 @@ export default function NewPost() {
 	);
 }
 
-function PostSetting({
-	icon,
-	title,
-	description,
-	value,
-	onValueChange,
-	colors,
-}: {
-	icon: keyof typeof Ionicons.glyphMap;
-	title: string;
-	description: string;
-	value: boolean;
-	onValueChange: (value: boolean) => void;
-	colors: (typeof Colors)["light"];
-}) {
-	return (
-		<View style={styles.settingRow}>
-			<View style={styles.settingIcon}>
-				<Ionicons name={icon} size={21} color={colors.text} />
-			</View>
-
-			<View style={styles.settingText}>
-				<Text style={[styles.settingTitle, { color: colors.text }]}>
-					{title}
-				</Text>
-
-				<Text
-					style={[
-						styles.settingDescription,
-						{ color: colors.secondary },
-					]}
-				>
-					{description}
-				</Text>
-			</View>
-
-			<View style={styles.settingSwitchContainer}>
-				<Switch
-					value={value}
-					onValueChange={onValueChange}
-					trackColor={{
-						false: colors.separator,
-						true: Colors.accent,
-					}}
-					thumbColor="#fff"
-					ios_backgroundColor={colors.separator}
-				/>
-			</View>
-		</View>
-	);
-}
-
 const styles = StyleSheet.create({
+	loadingContainer: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+
 	scrollView: {
 		flex: 1,
 	},
@@ -474,40 +541,6 @@ const styles = StyleSheet.create({
 		borderRadius: 25,
 		alignItems: "center",
 		justifyContent: "center",
-	},
-
-	imagePickerWrapper: {
-		width: "100%",
-		height: 210,
-		borderRadius: 25,
-		overflow: "hidden",
-	},
-
-	imagePicker: {
-		width: "100%",
-		height: "100%",
-		alignItems: "center",
-		justifyContent: "center",
-		borderWidth: StyleSheet.hairlineWidth,
-	},
-
-	imageIcon: {
-		width: 56,
-		height: 56,
-		borderRadius: 28,
-		alignItems: "center",
-		justifyContent: "center",
-		marginBottom: 10,
-	},
-
-	selectTitle: {
-		fontSize: 18,
-		fontWeight: "700",
-	},
-
-	selectDescription: {
-		fontSize: 14,
-		marginTop: 4,
 	},
 
 	previewContainer: {
@@ -601,11 +634,6 @@ const styles = StyleSheet.create({
 		paddingRight: 10,
 	},
 
-	settingSwitchContainer: {
-		alignSelf: "stretch",
-		justifyContent: "center",
-	},
-
 	settingTitle: {
 		fontSize: 15,
 		fontWeight: "600",
@@ -621,14 +649,14 @@ const styles = StyleSheet.create({
 		marginLeft: 65,
 	},
 
-	postButtonContainer: {
+	saveButtonContainer: {
 		width: "100%",
 		height: 50,
 		marginTop: 14,
 		borderRadius: 25,
 	},
 
-	postButton: {
+	saveButton: {
 		width: "100%",
 		height: 50,
 		borderRadius: 25,
@@ -638,7 +666,7 @@ const styles = StyleSheet.create({
 		gap: 8,
 	},
 
-	postButtonText: {
+	saveButtonText: {
 		color: "#fff",
 		fontSize: 16,
 		fontWeight: "700",
