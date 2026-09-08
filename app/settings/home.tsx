@@ -1,4 +1,5 @@
 import { supabase } from "@/app/utils/supabase";
+import Back from "@/components/Back";
 import SettingsContainer from "@/components/settings/SettingsContainer";
 import SettingsItem from "@/components/settings/SettingsItem";
 import SettingsLink from "@/components/settings/SettingsLink";
@@ -6,7 +7,7 @@ import SignOut from "@/components/settings/SignOut";
 import { AppData } from "@/data/version";
 import { Colors } from "@/styles/colors";
 import { useEffect, useState } from "react";
-import { ScrollView, useColorScheme } from "react-native";
+import { ScrollView, useColorScheme, View } from "react-native";
 
 export default function Index() {
   const theme = useColorScheme() ?? "light";
@@ -47,44 +48,51 @@ export default function Index() {
   });
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor: Colors[theme as "light" | "dark"].background }}
-    >
-      <SettingsContainer>
-        <SettingsLink
-          href="/editProfile"
-          title="Account"
-          selectedValue={displayName}
-        />
-        <SettingsLink
-          href="/(tabs)/settings/privacy-security"
-          title="Privacy & Security"
-        />
-      </SettingsContainer>
+    <>
+      <View>
+        <Back />
+      </View>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        style={{
+          backgroundColor: Colors[theme as "light" | "dark"].background,
+        }}
+      >
+        <SettingsContainer>
+          <SettingsLink
+            href="/editProfile"
+            title="Account"
+            selectedValue={displayName}
+          />
+          <SettingsLink
+            href="/settings/privacy-security"
+            title="Privacy & Security"
+          />
+        </SettingsContainer>
 
-      <SettingsContainer>
-        <SettingsLink href="" title="Appearance" />
-        <SettingsLink href="" title="Notifications" />
-        <SettingsLink href="" title="Circles" />
-      </SettingsContainer>
+        <SettingsContainer>
+          <SettingsLink href="" title="Appearance" />
+          <SettingsLink href="" title="Notifications" />
+          <SettingsLink href="" title="Circles" />
+        </SettingsContainer>
 
-      {/* <SettingsContainer>
+        {/* <SettingsContainer>
           <SettingsLink
             href="/subscriptions"
             title="Subscriptions"
             selectedValue="Free Plan"
-          />
-          <SettingsLink href="" title="Support Circle" type="external" />
+            />
+            <SettingsLink href="" title="Support Circle" type="external" />
         </SettingsContainer> */}
 
-      <SettingsContainer>
-        <SettingsItem title="Version" subtitle={AppData.version} />
-      </SettingsContainer>
+        <SettingsContainer>
+          <SettingsItem title="Version" subtitle={AppData.version} />
+        </SettingsContainer>
 
-      <SettingsContainer>
-        <SignOut title="Sign Out" />
-      </SettingsContainer>
-    </ScrollView>
+        <SettingsContainer>
+          <SignOut title="Sign Out" />
+        </SettingsContainer>
+      </ScrollView>
+    </>
   );
 }

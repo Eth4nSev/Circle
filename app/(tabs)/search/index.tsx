@@ -162,7 +162,7 @@ export default function SearchScreen() {
                   ]}
                   onPress={() =>
                     router.push({
-                      pathname: "/(tabs)/search/profile",
+                      pathname: "/profiles",
                       params: {
                         userId: profile.id,
                       },

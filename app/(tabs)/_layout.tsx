@@ -21,19 +21,19 @@ export default function TabLayout() {
         />
         <NativeTabs.Trigger.Label>Circles</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="settings">
-        <NativeTabs.Trigger.Icon
-          sf={{ default: "person", selected: "person.fill" }}
-          selectedColor={Colors.accent}
-        />
-        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="search">
         <NativeTabs.Trigger.Icon
           sf="magnifyingglass"
           selectedColor={Colors.accent}
         />
         <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "person", selected: "person.fill" }}
+          selectedColor={Colors.accent}
+        />
+        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

@@ -1,11 +1,14 @@
-import AddPost from "@/components/addPost";
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
+import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Pressable,
   RefreshControl,
+  ScrollView,
   Text,
   useColorScheme,
   View,
@@ -50,7 +53,7 @@ export default function Index() {
 
   return (
     <>
-      <Animated.ScrollView
+      <ScrollView
         style={{
           backgroundColor: Colors[theme as "light" | "dark"].background,
           flex: 1,
@@ -63,22 +66,23 @@ export default function Index() {
             tintColor={Colors[theme as "light" | "dark"].text}
           />
         }
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true },
-        )}
-        scrollEventThrottle={16}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <GlassView
             style={{
               width: 100,
-              height: 40,
+              height: 50,
               paddingVertical: 5,
               justifyContent: "center",
               alignItems: "center",
               margin: 10,
-              borderRadius: 20,
+              borderRadius: 50,
             }}
             isInteractive
           >
@@ -92,6 +96,26 @@ export default function Index() {
               Home
             </Text>
           </GlassView>
+          <Pressable onPress={() => router.push("/newPost")}>
+            <GlassView
+              style={{
+                width: 50,
+                height: 50,
+                paddingVertical: 5,
+                justifyContent: "center",
+                alignItems: "center",
+                margin: 10,
+                borderRadius: 50,
+              }}
+              isInteractive
+            >
+              <Ionicons
+                name="add"
+                size={30}
+                color={Colors[theme as "light" | "dark"].text}
+              />
+            </GlassView>
+          </Pressable>
         </View>
         {posts.map((post) => (
           <PostContainer
@@ -103,20 +127,7 @@ export default function Index() {
             caption={post.caption}
           />
         ))}
-      </Animated.ScrollView>
-
-      <Animated.View
-        style={{
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-          position: "absolute",
-          bottom: 100,
-          transform: [{ translateY: translateY }],
-        }}
-      >
-        <AddPost href="../newPost" />
-      </Animated.View>
+      </ScrollView>
     </>
   );
 }

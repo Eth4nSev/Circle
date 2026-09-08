@@ -22,7 +22,7 @@ import {
 
 export default function ProfileScreen() {
   const theme = useColorScheme() ?? "light";
-  const { userId } = useLocalSearchParams<{ userId: string }>();
+  const { id: userId } = useLocalSearchParams<{ id: string }>();
 
   const [posts, setPosts] = useState<any[]>([]);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -205,26 +205,6 @@ export default function ProfileScreen() {
             {/* <GlassView isInteractive style={styles.glassButtonMini}>
 						</GlassView> */}
           </GlassContainer>
-
-          {/* <GlassView style={styles.contextMenu} isInteractive>
-            <Pressable style={styles.contextMenuItem}>
-              <Ionicons name="share" size={20} color={Colors[theme as "light" | "dark"].text} />
-              <Text
-                style={[styles.contextMenuText, { color: Colors[theme as "light" | "dark"].text }]}
-              >
-                Share Profile Link
-              </Text>
-            </Pressable>
-
-            <Pressable style={styles.contextMenuItem}>
-              <Ionicons name="flag" size={20} color={Colors[theme as "light" | "dark"].text} />
-              <Text
-                style={[styles.contextMenuText, { color: Colors[theme as "light" | "dark"].text }]}
-              >
-                Report User
-              </Text>
-            </Pressable>
-          </GlassView> */}
         </View>
 
         {profileImage && (
@@ -421,6 +401,7 @@ export default function ProfileScreen() {
 
             {posts.map((post) => (
               <PostContainer
+                key={post.id}
                 userId={post.user_id}
                 id={post.id}
                 time={post.created_at}

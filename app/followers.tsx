@@ -95,7 +95,7 @@ export default function Followers() {
     router.dismiss();
     setTimeout(() => {
       router.push({
-        pathname: "/(tabs)/search/profile",
+        pathname: "/profiles",
         params: { userId },
       });
     }, 100);
