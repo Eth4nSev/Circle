@@ -1,5 +1,12 @@
 import { supabase } from "@/app/utils/supabase";
-import { Alert, Pressable, StyleSheet, Text, useColorScheme } from "react-native";
+import { Colors } from "@/styles/colors";
+import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  useColorScheme,
+} from "react-native";
 
 type SettingsLinkProps = {
   title: string;
@@ -12,7 +19,10 @@ export default function SignOut({ title }: SettingsLinkProps) {
     <Pressable
       style={({ pressed }) => [
         styles.settingsItem,
-        pressed && styles.settingsItemPressed,
+        pressed && [
+          styles.settingsItemPressed,
+          { backgroundColor: Colors[theme as "light" | "dark"].cardSelection },
+        ],
       ]}
       onPress={() => {
         Alert.alert("Sign out", "Are you sure you want to sign out?", [
@@ -41,7 +51,6 @@ const styles = StyleSheet.create({
   },
   settingsItemPressed: {
     opacity: 0.7,
-    backgroundColor: "#555",
     borderRadius: 20,
   },
   settingsText: {

@@ -102,22 +102,14 @@ export default function subscriptions() {
               </Text>
             </View>
 
-            <GlassView
-              tintColor={Colors.accent}
-              style={styles.maxButton}
-              isInteractive
-            >
+            <GlassView tintColor={Colors.accent} style={styles.maxButton}>
               <Pressable>
                 <Text style={styles.upgradeText}>Upgrade to Circle Max</Text>
               </Pressable>
             </GlassView>
           </View>
 
-          <GlassView
-            tintColor={Colors.accent}
-            style={styles.featuredPlan}
-            isInteractive
-          >
+          <GlassView tintColor={Colors.accent} style={styles.featuredPlan}>
             <View style={styles.planHeader}>
               <View>
                 <View style={styles.nameRow}>

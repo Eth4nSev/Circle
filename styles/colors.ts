@@ -11,7 +11,7 @@ export const Colors = {
     loginModal: "#f2f2f6",
     google: "#fff",
     googleText: "#1F1F1F",
-    stats: "rgba(242,242,246,0.5)",
+    stats: "rgba(242,242,246,0.75)",
   },
   dark: {
     background: "#000",
@@ -25,7 +25,7 @@ export const Colors = {
     loginModal: "#1c1c1e",
     google: "#131314",
     googleText: "#E3E3E3",
-    stats: "rgba(0,0,0,0.25)",
+    stats: "rgba(0,0,0,0.75)",
   },
   accent: "#17b3da",
 };

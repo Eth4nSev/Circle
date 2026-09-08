@@ -76,14 +76,14 @@ export default function Index() {
           <SettingsLink href="" title="Circles" />
         </SettingsContainer>
 
-        {/* <SettingsContainer>
+        <SettingsContainer>
           <SettingsLink
             href="/subscriptions"
             title="Subscriptions"
             selectedValue="Free Plan"
-            />
-            <SettingsLink href="" title="Support Circle" type="external" />
-        </SettingsContainer> */}
+          />
+          <SettingsLink href="" title="Support Circle" type="external" />
+        </SettingsContainer>
 
         <SettingsContainer>
           <SettingsItem title="Version" subtitle={AppData.version} />

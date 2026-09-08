@@ -394,7 +394,7 @@ export default function PostContainer({
                   }
                 />
               ) : null}
-              {postSettings.allow_sharing && (
+              {(postSettings.allow_sharing || isOwnPost) && (
                 <Button
                   systemImage="square.and.arrow.up"
                   label="Share"

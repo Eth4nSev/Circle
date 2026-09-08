@@ -9,6 +9,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   RefreshControl,
@@ -161,6 +162,22 @@ export default function ProfileScreen() {
     } finally {
       setFollowLoading(false);
     }
+  }
+
+  function handleFollowPress() {
+    if (isFollowing) {
+      Alert.alert(
+        "Unfollow user?",
+        `Are you sure you want to unfollow ${displayName}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Unfollow", style: "destructive", onPress: toggleFollow },
+        ],
+      );
+      return;
+    }
+
+    toggleFollow();
   }
 
   useEffect(() => {
@@ -357,7 +374,7 @@ export default function ProfileScreen() {
           {!isOwnProfile && (
             <Pressable
               style={styles.followButtonContainer}
-              onPress={toggleFollow}
+              onPress={handleFollowPress}
               disabled={followLoading}
             >
               <GlassView
