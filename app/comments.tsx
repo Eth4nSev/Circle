@@ -1,21 +1,21 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
+	ActivityIndicator,
+	FlatList,
+	Image,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	useColorScheme,
+	View,
 } from "react-native";
 
 type CommentProfile = {
@@ -260,12 +260,7 @@ export default function Comments() {
 
 	return (
 		<KeyboardAvoidingView
-			style={[
-				styles.container,
-				{
-					backgroundColor: colors.background,
-				},
-			]}
+			style={[styles.container]}
 			behavior={Platform.OS === "ios" ? "padding" : undefined}
 			keyboardVerticalOffset={20}
 		>
@@ -274,26 +269,39 @@ export default function Comments() {
 				<Text style={[styles.title, { color: colors.text }]}>
 					Comments
 				</Text>
-
-				<Pressable onPress={() => router.back()} hitSlop={10}>
-					<Ionicons name="close" size={26} color={colors.text} />
-				</Pressable>
+				<GlassView
+					style={{
+						width: 50,
+						height: 50,
+						borderRadius: 50,
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+					isInteractive
+				>
+					<Pressable onPress={() => router.back()}>
+						<MaterialIcons
+							name="close"
+							size={28}
+							color={colors.text}
+						/>
+					</Pressable>
+				</GlassView>
 			</View>
 
-			{/* Comments */}
 			{loading ? (
 				<View style={styles.center}>
 					<ActivityIndicator color={Colors.accent} />
 				</View>
 			) : comments.length === 0 ? (
 				<View style={styles.center}>
-					<GlassView style={styles.emptyIcon} tintColor={colors.card}>
+					<View style={styles.emptyIcon}>
 						<Ionicons
 							name="chatbubble-outline"
 							size={28}
 							color={Colors.accent}
 						/>
-					</GlassView>
+					</View>
 
 					<Text
 						style={[
@@ -328,13 +336,8 @@ export default function Comments() {
 				/>
 			)}
 
-			{/* Comment Input */}
 			<View style={styles.inputArea}>
-				<GlassView
-					style={styles.inputGlass}
-					tintColor={colors.card}
-					isInteractive
-				>
+				<GlassView style={styles.inputGlass} isInteractive>
 					<TextInput
 						value={comment}
 						onChangeText={setComment}
@@ -398,6 +401,8 @@ function formatDate(date: string) {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		paddingTop: 20,
+		paddingHorizontal: 20,
 	},
 
 	header: {
@@ -405,7 +410,6 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
-		paddingHorizontal: 20,
 	},
 
 	title: {
@@ -512,7 +516,7 @@ const styles = StyleSheet.create({
 	inputArea: {
 		paddingHorizontal: 12,
 		paddingTop: 8,
-		paddingBottom: 12,
+		paddingBottom: 16,
 	},
 
 	inputGlass: {
