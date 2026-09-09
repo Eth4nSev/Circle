@@ -79,6 +79,16 @@ export default function SearchScreen() {
     setRefreshing(false);
   };
 
+  function openProfile(userId: string) {
+    router.dismiss();
+    setTimeout(() => {
+      router.push({
+        pathname: "/profiles",
+        params: { id: userId },
+      });
+    }, 100);
+  }
+
   return (
     <>
       <Stack.Screen
@@ -160,14 +170,7 @@ export default function SearchScreen() {
                     styles.profile,
                     pressed && styles.profilePressed,
                   ]}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/profiles",
-                      params: {
-                        userId: profile.id,
-                      },
-                    })
-                  }
+                  onPress={() => openProfile(profile.id)}
                 >
                   <View style={styles.avatarContainer}>
                     {profile.avatar_url ? (

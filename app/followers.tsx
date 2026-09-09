@@ -1,7 +1,6 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { GlassView } from "expo-glass-effect";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -96,7 +95,7 @@ export default function Followers() {
     setTimeout(() => {
       router.push({
         pathname: "/profiles",
-        params: { userId },
+        params: { id: userId },
       });
     }, 100);
   }
@@ -125,23 +124,6 @@ export default function Followers() {
 
   return (
     <>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Edit Profile</Text>
-        <GlassView
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 50,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          isInteractive
-        >
-          <Pressable onPress={() => router.back()}>
-            <MaterialIcons name="close" size={28} color={colors.text} />
-          </Pressable>
-        </GlassView>
-      </View>
       <View style={[styles.container]}>
         <FlatList
           data={followers}

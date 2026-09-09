@@ -95,7 +95,7 @@ export default function followings() {
     setTimeout(() => {
       router.push({
         pathname: "/profiles",
-        params: { userId },
+        params: { id: userId },
       });
     }, 100);
   }

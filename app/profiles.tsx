@@ -2,6 +2,7 @@ import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
+import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { MaterialIcons, Octicons } from "@expo/vector-icons";
 import { GlassContainer, GlassView } from "expo-glass-effect";
 import { LinearGradient } from "expo-linear-gradient";
@@ -205,22 +206,29 @@ export default function ProfileScreen() {
         <View style={styles.settingsButton}>
           <GlassContainer style={styles.glassButtonContainer} spacing={10}>
             <GlassView isInteractive style={styles.glassButton}>
-              {/* <Octicons name="share" size={24} color={Colors[theme as "light" | "dark"].text} /> */}
               <Octicons
                 name="bell-slash"
                 size={24}
                 color={Colors[theme as "light" | "dark"].text}
               />
-              <Pressable>
-                <MaterialIcons
-                  name="more-horiz"
-                  size={24}
-                  color={Colors[theme as "light" | "dark"].text}
-                />
-              </Pressable>
+              <Host matchContents>
+                <Menu
+                  label={
+                    <RNHostView matchContents>
+                      <MaterialIcons
+                        name="more-horiz"
+                        size={27}
+                        color={Colors[theme as "light" | "dark"].text}
+                      />
+                    </RNHostView>
+                  }
+                >
+                  <Button systemImage="square.and.arrow.up" label="Share" />
+                  <Button systemImage="person.2" label="Invite to Circle" />
+                  <Button systemImage="circle.dashed" label="Block" />
+                </Menu>
+              </Host>
             </GlassView>
-            {/* <GlassView isInteractive style={styles.glassButtonMini}>
-						</GlassView> */}
           </GlassContainer>
         </View>
 
@@ -466,7 +474,7 @@ const styles = StyleSheet.create({
   },
 
   glassButton: {
-    width: 100,
+    width: 110,
     flexDirection: "row",
     gap: 25,
     height: 50,
