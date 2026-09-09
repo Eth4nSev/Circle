@@ -3,7 +3,7 @@ import Back from "@/components/Back";
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
 import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
-import { MaterialIcons, Octicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
 import { GlassContainer, GlassView } from "expo-glass-effect";
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -205,6 +205,13 @@ export default function ProfileScreen() {
       >
         <View style={styles.settingsButton}>
           <GlassContainer style={styles.glassButtonContainer} spacing={10}>
+            {/* <GlassView isInteractive style={styles.glassButtonMini}>
+              <Ionicons
+                name="chatbubble-outline"
+                size={23}
+                color={Colors[theme as "light" | "dark"].text}
+              />
+            </GlassView> */}
             <GlassView isInteractive style={styles.glassButton}>
               <Octicons
                 name="bell-slash"
@@ -225,7 +232,8 @@ export default function ProfileScreen() {
                 >
                   <Button systemImage="square.and.arrow.up" label="Share" />
                   <Button systemImage="person.2" label="Invite to Circle" />
-                  <Button systemImage="circle.dashed" label="Block" />
+                  <Button systemImage="circle.slash" label="Block" />
+                  <Button systemImage="exclamationmark.bubble" label="Report" />
                 </Menu>
               </Host>
             </GlassView>
@@ -379,40 +387,69 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {!isOwnProfile && (
-            <Pressable
-              style={styles.followButtonContainer}
-              onPress={handleFollowPress}
-              disabled={followLoading}
-            >
-              <GlassView
-                tintColor={
-                  isFollowing
-                    ? Colors[theme as "light" | "dark"].separator
-                    : Colors.accent
-                }
-                style={styles.followButton}
-                isInteractive
+          <View
+            style={[
+              styles.followButtonContainer,
+              { flexDirection: "row", gap: 5 },
+            ]}
+          >
+            {!isOwnProfile && (
+              <Pressable
+                style={styles.followAction}
+                onPress={handleFollowPress}
+                disabled={followLoading}
               >
-                <Text
-                  style={[
-                    styles.followButtonText,
-                    isFollowing && {
-                      color: Colors[theme as "light" | "dark"].text,
-                    },
-                  ]}
+                <GlassView
+                  tintColor={
+                    isFollowing
+                      ? Colors[theme as "light" | "dark"].separator
+                      : Colors.accent
+                  }
+                  style={styles.followButton}
+                  isInteractive
                 >
-                  {followLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : isFollowing ? (
-                    "Following"
-                  ) : (
-                    "Follow"
-                  )}
-                </Text>
-              </GlassView>
-            </Pressable>
-          )}
+                  <Text
+                    style={[
+                      styles.followButtonText,
+                      isFollowing && {
+                        color: Colors[theme as "light" | "dark"].text,
+                      },
+                    ]}
+                  >
+                    {followLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : isFollowing ? (
+                      "Following"
+                    ) : (
+                      "Follow"
+                    )}
+                  </Text>
+                </GlassView>
+              </Pressable>
+            )}
+            {isFollowing ? (
+              <Pressable
+                style={styles.followAction}
+                onPress={() => console.log("Message")}
+              >
+                <GlassView
+                  isInteractive
+                  style={[
+                    styles.followButton,
+                    { flexDirection: "row", gap: 5 },
+                  ]}
+                  tintColor={Colors[theme as "light" | "dark"].separator}
+                >
+                  <Ionicons
+                    name="chatbubble-outline"
+                    size={20}
+                    color={Colors[theme as "light" | "dark"].text}
+                  />
+                  <Text style={styles.followButtonText}>Chat</Text>
+                </GlassView>
+              </Pressable>
+            ) : null}
+          </View>
 
           <View style={styles.postSection}>
             <Text
@@ -588,6 +625,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 20,
     borderRadius: 30,
+  },
+
+  followAction: {
+    flex: 1,
   },
 
   followButton: {
