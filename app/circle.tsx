@@ -1,0 +1,687 @@
+import { supabase } from "@/app/utils/supabase";
+import PostContainer from "@/components/post";
+import { Colors } from "@/styles/colors";
+import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { GlassView } from "expo-glass-effect";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Image,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    useColorScheme,
+    View,
+} from "react-native";
+
+type CircleData = {
+	id: string;
+	name: string;
+	color: string;
+	icon_type: string | null;
+	icon_value: string | null;
+	chat_enabled: boolean;
+	created_by: string;
+};
+
+type CircleMember = {
+	user_id: string;
+	role: "admin" | "manager" | "member";
+};
+
+type Post = {
+	id: string;
+	user_id: string;
+	image: string | null;
+	caption: string | null;
+	created_at: string;
+};
+
+export default function CircleScreen() {
+	const theme = useColorScheme() ?? "light";
+	const colors = Colors[theme as "light" | "dark"];
+	const { id } = useLocalSearchParams<{ id: string }>();
+
+	const [circle, setCircle] = useState<CircleData | null>(null);
+	const [members, setMembers] = useState<CircleMember[]>([]);
+	const [posts, setPosts] = useState<Post[]>([]);
+	const [refreshing, setRefreshing] = useState(false);
+	const [loading, setLoading] = useState(true);
+
+	async function loadCircle() {
+		if (!id) return;
+
+		try {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+
+			if (!user) {
+				router.replace("/login");
+				return;
+			}
+
+			const { data: circleData, error: circleError } = await supabase
+				.from("circles")
+				.select(
+					"id, name, color, icon_type, icon_value, chat_enabled, created_by",
+				)
+				.eq("id", id)
+				.single();
+
+			if (circleError) {
+				console.error("Error fetching Circle:", circleError);
+				setCircle(null);
+				return;
+			}
+
+			setCircle(circleData);
+
+			const { data: memberData, error: memberError } = await supabase
+				.from("circle_members")
+				.select("user_id, role")
+				.eq("circle_id", id);
+
+			if (memberError) {
+				console.error("Error fetching Circle members:", memberError);
+			} else {
+				setMembers(memberData ?? []);
+			}
+
+			const { data: postData, error: postError } = await supabase
+				.from("posts")
+				.select("id, user_id, image, caption, created_at")
+				.eq("circle_id", id)
+				.order("created_at", { ascending: false });
+
+			if (postError) {
+				console.error("Error fetching Circle posts:", postError);
+			} else {
+				setPosts(postData ?? []);
+			}
+		} finally {
+			setLoading(false);
+			setRefreshing(false);
+		}
+	}
+
+	useEffect(() => {
+		loadCircle();
+	}, [id]);
+
+	function getCircleIcon() {
+		if (!circle) return null;
+
+		if (circle.icon_type === "photo" && circle.icon_value) {
+			return (
+				<Image
+					source={{ uri: circle.icon_value }}
+					style={styles.circleIconImage}
+				/>
+			);
+		}
+
+		if (circle.icon_type === "emoji" && circle.icon_value) {
+			return <Text style={styles.circleEmoji}>{circle.icon_value}</Text>;
+		}
+
+		const firstLetter = circle.name.trim().charAt(0).toUpperCase();
+
+		return (
+			<Text
+				style={[
+					styles.circleMonogram,
+					{
+						color: colors.text,
+					},
+				]}
+			>
+				{firstLetter || "C"}
+			</Text>
+		);
+	}
+
+	if (loading) {
+		return (
+			<View
+				style={[
+					styles.loadingContainer,
+					{
+						backgroundColor: colors.background,
+					},
+				]}
+			>
+				<ActivityIndicator size="large" color={Colors.accent} />
+			</View>
+		);
+	}
+
+	if (!circle) {
+		return (
+			<View
+				style={[
+					styles.loadingContainer,
+					{
+						backgroundColor: colors.background,
+					},
+				]}
+			>
+				<MaterialIcons
+					name="error-outline"
+					size={48}
+					color={colors.secondary}
+				/>
+
+				<Text
+					style={[
+						styles.errorTitle,
+						{
+							color: colors.text,
+						},
+					]}
+				>
+					Circle not found
+				</Text>
+
+				<Pressable
+					onPress={() => router.back()}
+					style={styles.errorButton}
+				>
+					<GlassView isInteractive style={styles.errorGlassButton}>
+						<Text
+							style={[
+								styles.errorButtonText,
+								{
+									color: colors.text,
+								},
+							]}
+						>
+							Go Back
+						</Text>
+					</GlassView>
+				</Pressable>
+			</View>
+		);
+	}
+
+	return (
+		<>
+			<Stack.Screen
+				options={{
+					headerShown: false,
+					headerBackTitle: "",
+				}}
+			/>
+
+			<View
+				style={[
+					styles.container,
+					{
+						backgroundColor: colors.background,
+					},
+				]}
+			>
+				<View
+					style={[
+						styles.colorBackground,
+						{
+							backgroundColor: circle.color,
+						},
+					]}
+				/>
+
+				<LinearGradient
+					colors={[`${circle.color}00`, colors.background]}
+					style={styles.colorFade}
+					pointerEvents="none"
+				/>
+
+				<View style={styles.headerButtons}>
+					{circle.chat_enabled && (
+						<Pressable>
+							<GlassView isInteractive style={styles.glassButton}>
+								<Ionicons
+									name="chatbubble-outline"
+									size={23}
+									color={colors.text}
+								/>
+							</GlassView>
+						</Pressable>
+					)}
+
+					<GlassView isInteractive style={styles.glassButton}>
+						<Host>
+							<Menu
+								label={
+									<RNHostView matchContents>
+										<MaterialIcons
+											name="more-horiz"
+											size={27}
+											color={colors.text}
+										/>
+									</RNHostView>
+								}
+							>
+								<Button
+									systemImage="trash"
+									label="Delete"
+									role="destructive"
+								/>
+							</Menu>
+						</Host>
+					</GlassView>
+				</View>
+
+				<Pressable
+					style={styles.backButton}
+					onPress={() => router.back()}
+				>
+					<GlassView isInteractive style={styles.glassButton}>
+						<Ionicons
+							name="chevron-back"
+							size={25}
+							color={colors.text}
+						/>
+					</GlassView>
+				</Pressable>
+
+				<ScrollView
+					showsVerticalScrollIndicator={false}
+					contentContainerStyle={styles.content}
+					contentInsetAdjustmentBehavior="automatic"
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={() => {
+								setRefreshing(true);
+								loadCircle();
+							}}
+						/>
+					}
+				>
+					<View style={styles.circleHeader}>
+						<View
+							style={[
+								styles.circleIcon,
+								{
+									backgroundColor: `${circle.color}45`,
+									borderColor: `${circle.color}80`,
+								},
+							]}
+						>
+							{getCircleIcon()}
+						</View>
+
+						<Text
+							style={[
+								styles.circleName,
+								{
+									color: colors.text,
+								},
+							]}
+						>
+							{circle.name}
+						</Text>
+
+						<Text
+							style={[
+								styles.circleSubtitle,
+								{
+									color: colors.secondary,
+								},
+							]}
+						>
+							Private Circle
+						</Text>
+					</View>
+
+					<View style={styles.statsContainer}>
+						<Pressable
+							style={[
+								styles.statCard,
+								{
+									backgroundColor: colors.stats,
+								},
+							]}
+						>
+							<Text
+								style={[
+									styles.statNumber,
+									{
+										color: colors.text,
+									},
+								]}
+							>
+								{members.length}
+							</Text>
+
+							<Text
+								style={[
+									styles.statLabel,
+									{
+										color: colors.secondary,
+									},
+								]}
+							>
+								Members
+							</Text>
+						</Pressable>
+
+						<View
+							style={[
+								styles.statCard,
+								{
+									backgroundColor: colors.stats,
+								},
+							]}
+						>
+							<Text
+								style={[
+									styles.statNumber,
+									{
+										color: colors.text,
+									},
+								]}
+							>
+								{posts.length}
+							</Text>
+
+							<Text
+								style={[
+									styles.statLabel,
+									{
+										color: colors.secondary,
+									},
+								]}
+							>
+								Posts
+							</Text>
+						</View>
+
+						<View
+							style={[
+								styles.statCard,
+								{
+									backgroundColor: colors.stats,
+								},
+							]}
+						>
+							<MaterialIcons
+								name={
+									circle.chat_enabled
+										? "chat-bubble-outline"
+										: "chat-bubble-outline"
+								}
+								size={21}
+								color={colors.text}
+							/>
+
+							<Text
+								style={[
+									styles.statLabel,
+									{
+										color: colors.secondary,
+									},
+								]}
+							>
+								{circle.chat_enabled ? "Chat On" : "Chat Off"}
+							</Text>
+						</View>
+					</View>
+
+					<View style={styles.postSection}>
+						<Text
+							style={[
+								styles.sectionTitle,
+								{
+									color: colors.text,
+								},
+							]}
+						>
+							Posts
+						</Text>
+
+						{posts.length === 0 ? (
+							<View
+								style={[
+									styles.emptyPosts,
+									{
+										backgroundColor: colors.stats,
+									},
+								]}
+							>
+								<MaterialIcons
+									name="photo-library"
+									size={42}
+									color={colors.secondary}
+								/>
+
+								<Text
+									style={[
+										styles.emptyTitle,
+										{
+											color: colors.text,
+										},
+									]}
+								>
+									No posts yet
+								</Text>
+
+								<Text
+									style={[
+										styles.emptyDescription,
+										{
+											color: colors.secondary,
+										},
+									]}
+								>
+									Posts shared with this Circle will appear
+									here.
+								</Text>
+							</View>
+						) : (
+							posts.map((post) => (
+								<PostContainer
+									key={post.id}
+									userId={post.user_id}
+									id={post.id}
+									time={post.created_at}
+									href={post.image ?? ""}
+									caption={post.caption ?? ""}
+								/>
+							))
+						)}
+					</View>
+				</ScrollView>
+			</View>
+
+			<StatusBar barStyle="light-content" />
+		</>
+	);
+}
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
+
+	loadingContainer: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+
+	colorBackground: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		height: 310,
+		opacity: 0.75,
+	},
+
+	colorFade: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		height: 310,
+	},
+
+	content: {
+		paddingHorizontal: 16,
+	},
+
+	backButton: {
+		position: "absolute",
+		left: 16,
+		top: 60,
+		zIndex: 20,
+	},
+
+	headerButtons: {
+		position: "absolute",
+		right: 16,
+		top: 60,
+		zIndex: 20,
+		flexDirection: "row",
+		gap: 10,
+	},
+
+	glassButton: {
+		width: 50,
+		height: 50,
+		borderRadius: 50,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+
+	circleHeader: {
+		alignItems: "center",
+		paddingTop: 58,
+	},
+
+	circleIcon: {
+		width: 120,
+		height: 120,
+		borderRadius: 32,
+		alignItems: "center",
+		justifyContent: "center",
+		borderWidth: StyleSheet.hairlineWidth,
+		overflow: "hidden",
+		marginBottom: 16,
+	},
+
+	circleIconImage: {
+		width: "100%",
+		height: "100%",
+	},
+
+	circleEmoji: {
+		fontSize: 58,
+	},
+
+	circleMonogram: {
+		fontSize: 50,
+		fontWeight: "700",
+	},
+
+	circleName: {
+		fontSize: 28,
+		fontWeight: "700",
+		textAlign: "center",
+	},
+
+	circleSubtitle: {
+		fontSize: 15,
+		marginTop: 4,
+	},
+
+	statsContainer: {
+		flexDirection: "row",
+		gap: 10,
+		marginTop: 28,
+	},
+
+	statCard: {
+		flex: 1,
+		minHeight: 82,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingVertical: 14,
+		borderRadius: 18,
+	},
+
+	statNumber: {
+		fontSize: 20,
+		fontWeight: "700",
+	},
+
+	statLabel: {
+		fontSize: 13,
+		marginTop: 3,
+	},
+
+	postSection: {
+		marginTop: 24,
+		marginHorizontal: -16,
+	},
+
+	sectionTitle: {
+		fontSize: 21,
+		fontWeight: "700",
+		marginBottom: 12,
+		marginHorizontal: 16,
+	},
+
+	emptyPosts: {
+		minHeight: 220,
+		borderRadius: 22,
+		marginHorizontal: 16,
+		justifyContent: "center",
+		alignItems: "center",
+		padding: 24,
+	},
+
+	emptyTitle: {
+		fontSize: 18,
+		fontWeight: "600",
+		marginTop: 12,
+	},
+
+	emptyDescription: {
+		fontSize: 14,
+		textAlign: "center",
+		marginTop: 5,
+		maxWidth: 280,
+	},
+
+	errorTitle: {
+		fontSize: 20,
+		fontWeight: "700",
+		marginTop: 12,
+	},
+
+	errorButton: {
+		marginTop: 20,
+	},
+
+	errorGlassButton: {
+		height: 48,
+		paddingHorizontal: 24,
+		borderRadius: 24,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+
+	errorButtonText: {
+		fontSize: 16,
+		fontWeight: "600",
+	},
+});

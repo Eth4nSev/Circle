@@ -176,6 +176,19 @@ export default function RootLayout() {
 				}}
 			/>
 			<Stack.Screen
+				name="create"
+				options={{
+					presentation: "formSheet",
+					sheetGrabberVisible: false,
+					sheetAllowedDetents: [1],
+					contentStyle: {
+						backgroundColor: isLiquidGlassAvailable()
+							? "transparent"
+							: Colors[theme as "light" | "dark"].background,
+					},
+				}}
+			/>
+			<Stack.Screen
 				name="editPost"
 				options={{
 					presentation: "formSheet",
