@@ -17,6 +17,7 @@ import { supabase } from "../utils/supabase";
 
 export default function Index() {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
   const [posts, setPosts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -88,7 +89,7 @@ export default function Index() {
           >
             <Text
               style={{
-                color: Colors[theme as "light" | "dark"].text,
+                color: colors.text,
                 fontWeight: "bold",
                 fontSize: 20,
               }}
@@ -109,11 +110,7 @@ export default function Index() {
               }}
               isInteractive
             >
-              <Ionicons
-                name="add"
-                size={30}
-                color={Colors[theme as "light" | "dark"].text}
-              />
+              <Ionicons name="add" size={30} color={colors.text} />
             </GlassView>
           </Pressable>
         </View>

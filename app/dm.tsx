@@ -214,11 +214,7 @@ export default function DM() {
       </Pressable>
       <GlassView isInteractive style={styles.moreButton}>
         <Pressable>
-          <MaterialIcons
-            name="more-horiz"
-            size={27}
-            color={Colors[theme as "light" | "dark"].text}
-          />
+          <MaterialIcons name="more-horiz" size={27} color={colors.text} />
         </Pressable>
       </GlassView>
 

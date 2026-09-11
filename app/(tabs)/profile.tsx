@@ -20,6 +20,7 @@ import {
 
 export default function ProfileScreen() {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
 
   const [posts, setPosts] = useState<any[]>([]);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -114,7 +115,7 @@ export default function ProfileScreen() {
         style={[
           styles.container,
           {
-            backgroundColor: Colors[theme as "light" | "dark"].background,
+            backgroundColor: colors.background,
           },
         ]}
       >
@@ -123,11 +124,7 @@ export default function ProfileScreen() {
           onPress={() => router.push("/settings/home")}
         >
           <GlassView isInteractive style={styles.glassButton}>
-            <MaterialIcons
-              name="settings"
-              size={24}
-              color={Colors[theme as "light" | "dark"].text}
-            />
+            <MaterialIcons name="settings" size={24} color={colors.text} />
           </GlassView>
         </Pressable>
 
@@ -136,11 +133,7 @@ export default function ProfileScreen() {
           onPress={() => router.push("/editProfile")}
         >
           <GlassView isInteractive style={styles.glassButton}>
-            <Ionicons
-              name="pencil"
-              color={Colors[theme as "light" | "dark"].text}
-              size={24}
-            />
+            <Ionicons name="pencil" color={colors.text} size={24} />
           </GlassView>
         </Pressable>
 
@@ -157,10 +150,7 @@ export default function ProfileScreen() {
             />
 
             <LinearGradient
-              colors={[
-                "transparent",
-                Colors[theme as "light" | "dark"].background,
-              ]}
+              colors={["transparent", colors.background]}
               style={styles.profileImageFade}
               pointerEvents="none"
             />
@@ -183,7 +173,7 @@ export default function ProfileScreen() {
                   style={[
                     styles.profilePictureImage,
                     {
-                      borderColor: Colors[theme as "light" | "dark"].separator,
+                      borderColor: colors.separator,
                     },
                   ]}
                 />
@@ -191,7 +181,7 @@ export default function ProfileScreen() {
                 <MaterialIcons
                   name="person"
                   size={55}
-                  color={Colors[theme as "light" | "dark"].secondary}
+                  color={colors.secondary}
                 />
               )}
             </View>
@@ -200,7 +190,7 @@ export default function ProfileScreen() {
               style={[
                 styles.displayName,
                 {
-                  color: Colors[theme as "light" | "dark"].text,
+                  color: colors.text,
                 },
               ]}
             >
@@ -211,7 +201,7 @@ export default function ProfileScreen() {
               style={[
                 styles.username,
                 {
-                  color: Colors[theme as "light" | "dark"].secondary,
+                  color: colors.secondary,
                 },
               ]}
             >
@@ -225,7 +215,7 @@ export default function ProfileScreen() {
               style={[
                 styles.statCard,
                 {
-                  backgroundColor: Colors[theme as "light" | "dark"].stats,
+                  backgroundColor: colors.stats,
                 },
               ]}
             >
@@ -233,7 +223,7 @@ export default function ProfileScreen() {
                 style={[
                   styles.statNumber,
                   {
-                    color: Colors[theme as "light" | "dark"].text,
+                    color: colors.text,
                   },
                 ]}
               >
@@ -244,7 +234,7 @@ export default function ProfileScreen() {
                 style={[
                   styles.statLabel,
                   {
-                    color: Colors[theme as "light" | "dark"].secondary,
+                    color: colors.secondary,
                   },
                 ]}
               >
@@ -257,7 +247,7 @@ export default function ProfileScreen() {
               style={[
                 styles.statCard,
                 {
-                  backgroundColor: Colors[theme as "light" | "dark"].stats,
+                  backgroundColor: colors.stats,
                 },
               ]}
             >
@@ -265,7 +255,7 @@ export default function ProfileScreen() {
                 style={[
                   styles.statNumber,
                   {
-                    color: Colors[theme as "light" | "dark"].text,
+                    color: colors.text,
                   },
                 ]}
               >
@@ -276,7 +266,7 @@ export default function ProfileScreen() {
                 style={[
                   styles.statLabel,
                   {
-                    color: Colors[theme as "light" | "dark"].secondary,
+                    color: colors.secondary,
                   },
                 ]}
               >
@@ -288,7 +278,7 @@ export default function ProfileScreen() {
               style={[
                 styles.statCard,
                 {
-                  backgroundColor: Colors[theme as "light" | "dark"].stats,
+                  backgroundColor: colors.stats,
                 },
               ]}
             >
@@ -296,7 +286,7 @@ export default function ProfileScreen() {
                 style={[
                   styles.statNumber,
                   {
-                    color: Colors[theme as "light" | "dark"].text,
+                    color: colors.text,
                   },
                 ]}
               >
@@ -307,7 +297,7 @@ export default function ProfileScreen() {
                 style={[
                   styles.statLabel,
                   {
-                    color: Colors[theme as "light" | "dark"].secondary,
+                    color: colors.secondary,
                   },
                 ]}
               >
@@ -321,7 +311,7 @@ export default function ProfileScreen() {
               style={[
                 styles.sectionTitle,
                 {
-                  color: Colors[theme as "light" | "dark"].text,
+                  color: colors.text,
                 },
               ]}
             >

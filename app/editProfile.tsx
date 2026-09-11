@@ -185,12 +185,7 @@ export default function EditProfile() {
 
         <View style={styles.form}>
           <View style={[styles.field]}>
-            <Text
-              style={[
-                styles.label,
-                { color: Colors[theme as "light" | "dark"].text },
-              ]}
-            >
+            <Text style={[styles.label, { color: colors.text }]}>
               Display Name
             </Text>
 
@@ -202,9 +197,9 @@ export default function EditProfile() {
               style={[
                 styles.input,
                 {
-                  color: Colors[theme as "light" | "dark"].text,
-                  backgroundColor: Colors[theme as "light" | "dark"].clear,
-                  borderColor: Colors[theme as "light" | "dark"].separator,
+                  color: colors.text,
+                  backgroundColor: colors.clear,
+                  borderColor: colors.separator,
                 },
               ]}
               autoCapitalize="words"
@@ -219,8 +214,8 @@ export default function EditProfile() {
               style={[
                 styles.usernameInput,
                 {
-                  backgroundColor: Colors[theme as "light" | "dark"].clear,
-                  borderColor: Colors[theme as "light" | "dark"].separator,
+                  backgroundColor: colors.clear,
+                  borderColor: colors.separator,
                 },
               ]}
             >
@@ -260,7 +255,7 @@ export default function EditProfile() {
         </Pressable>
         <Text
           style={{
-            color: Colors[theme as "light" | "dark"].text,
+            color: colors.text,
             marginTop: 10,
             textAlign: "center",
             fontSize: 12,

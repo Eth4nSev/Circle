@@ -12,6 +12,7 @@ import {
 
 export default function GoogleButton() {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
 
   return (
     <Pressable
@@ -19,7 +20,7 @@ export default function GoogleButton() {
       onPress={() => Haptics.selectionAsync()}
     >
       <GlassView
-        tintColor={Colors[theme as "light" | "dark"].google}
+        tintColor={colors.google}
         style={styles.googleButton}
         isInteractive
       >
@@ -29,12 +30,7 @@ export default function GoogleButton() {
             style={styles.googleLogo}
           />
 
-          <Text
-            style={[
-              styles.googleText,
-              { color: Colors[theme as "light" | "dark"].googleText },
-            ]}
-          >
+          <Text style={[styles.googleText, { color: colors.googleText }]}>
             Sign in with Google
           </Text>
         </View>

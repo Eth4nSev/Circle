@@ -27,6 +27,7 @@ export default function SettingsLink({
   danger,
 }: SettingsLinkProps) {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
 
   return (
     <Pressable
@@ -35,7 +36,7 @@ export default function SettingsLink({
         styles.settingsItem,
         pressed && [
           styles.settingsItemPressed,
-          { backgroundColor: Colors[theme as "light" | "dark"].cardSelection },
+          { backgroundColor: colors.cardSelection },
         ],
       ]}
     >
@@ -43,12 +44,7 @@ export default function SettingsLink({
         <Text style={{ fontSize: 17, color: "#0188fe" }}>{title}</Text>
       ) : (
         <>
-          <Text
-            style={[
-              styles.settingsText,
-              { color: Colors[theme as "light" | "dark"].text },
-            ]}
-          >
+          <Text style={[styles.settingsText, { color: colors.text }]}>
             {title}
           </Text>
           <View style={styles.settingsValueContainer}>

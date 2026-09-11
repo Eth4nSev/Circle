@@ -13,6 +13,7 @@ export default function SettingsContainer({
   children,
 }: SettingsContainerProps) {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
   const items = Children.toArray(children);
   return (
     <View style={{ margin: 16, marginBottom: 0 }}>
@@ -30,10 +31,7 @@ export default function SettingsContainer({
         </Text>
       )}
       <View
-        style={[
-          styles.settingsContainer,
-          { backgroundColor: Colors[theme as "light" | "dark"].card },
-        ]}
+        style={[styles.settingsContainer, { backgroundColor: colors.card }]}
       >
         {items.map((children, index) => (
           <View key={index}>

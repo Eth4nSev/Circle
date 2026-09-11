@@ -273,11 +273,7 @@ export default function CircleScreen() {
         <View style={styles.headerButtons}>
           <Pressable onPress={() => router.push("/newPost")}>
             <GlassView isInteractive style={styles.glassButton}>
-              <Ionicons
-                name="add"
-                size={30}
-                color={Colors[theme as "light" | "dark"].text}
-              />
+              <Ionicons name="add" size={30} color={colors.text} />
             </GlassView>
           </Pressable>
           {circle.chat_enabled && (

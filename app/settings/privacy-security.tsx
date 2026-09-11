@@ -7,6 +7,7 @@ import { Alert, ScrollView, useColorScheme } from "react-native";
 
 export default function PrivacySecurity() {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
   const [loading, setLoading] = useState(true);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
@@ -49,7 +50,7 @@ export default function PrivacySecurity() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor: Colors[theme as "light" | "dark"].background }}
+      style={{ backgroundColor: colors.background }}
     >
       <SettingsContainer>
         <SettingsItem title="Test" />

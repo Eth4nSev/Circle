@@ -14,6 +14,7 @@ type SettingsLinkProps = {
 
 export default function SignOut({ title }: SettingsLinkProps) {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
 
   return (
     <Pressable
@@ -21,7 +22,7 @@ export default function SignOut({ title }: SettingsLinkProps) {
         styles.settingsItem,
         pressed && [
           styles.settingsItemPressed,
-          { backgroundColor: Colors[theme as "light" | "dark"].cardSelection },
+          { backgroundColor: colors.cardSelection },
         ],
       ]}
       onPress={() => {

@@ -20,6 +20,7 @@ export default function SignUpInput({
   setConfirmPassword,
 }: SignUpInputProps) {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
 
   const placeholderColor =
     theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.4)";
@@ -29,16 +30,13 @@ export default function SignUpInput({
       style={[
         styles.container,
         {
-          backgroundColor: Colors[theme as "light" | "dark"].login,
-          borderColor: Colors[theme as "light" | "dark"].separator,
+          backgroundColor: colors.login,
+          borderColor: colors.separator,
         },
       ]}
     >
       <TextInput
-        style={[
-          styles.input,
-          { color: Colors[theme as "light" | "dark"].text },
-        ]}
+        style={[styles.input, { color: colors.text }]}
         placeholder="Email"
         placeholderTextColor={placeholderColor}
         value={email}
@@ -53,10 +51,7 @@ export default function SignUpInput({
       <Separator />
 
       <TextInput
-        style={[
-          styles.input,
-          { color: Colors[theme as "light" | "dark"].text },
-        ]}
+        style={[styles.input, { color: colors.text }]}
         placeholder="Password"
         placeholderTextColor={placeholderColor}
         value={password}
@@ -71,10 +66,7 @@ export default function SignUpInput({
       <Separator />
 
       <TextInput
-        style={[
-          styles.input,
-          { color: Colors[theme as "light" | "dark"].text },
-        ]}
+        style={[styles.input, { color: colors.text }]}
         placeholder="Confirm password"
         placeholderTextColor={placeholderColor}
         value={confirmPassword}

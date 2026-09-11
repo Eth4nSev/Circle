@@ -19,18 +19,12 @@ export default function SettingsItem({
   type,
 }: SettingItemProps) {
   const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
   const [isEnabled, setIsEnabled] = useState(false);
 
   return (
     <View style={styles.settingsItem}>
-      <Text
-        style={[
-          styles.settingsText,
-          { color: Colors[theme as "light" | "dark"].text },
-        ]}
-      >
-        {title}
-      </Text>
+      <Text style={[styles.settingsText, { color: colors.text }]}>{title}</Text>
       {selected && <MaterialIcons name="check" size={20} color={"#0188fe"} />}
       {subtitle && (
         <Text style={{ fontSize: 17, color: "#888" }}>{subtitle}</Text>
