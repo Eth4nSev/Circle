@@ -1,20 +1,22 @@
 import { supabase } from "@/app/utils/supabase";
+import Back from "@/components/Back";
 import { Colors } from "@/styles/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    useColorScheme,
-    View,
+	ActivityIndicator,
+	FlatList,
+	Image,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	useColorScheme,
+	View,
 } from "react-native";
 
 type Message = {
@@ -164,86 +166,79 @@ export default function DM() {
 
 	return (
 		<>
-			<Stack.Screen
-				options={{
-					headerShown: true,
-					headerTitle: "",
-					headerBackTitle: "Back",
-					headerStyle: {
-						backgroundColor: colors.background,
-					},
-					headerTintColor: colors.text,
-					headerLeft: () => (
-						<Pressable
-							style={styles.headerLeft}
-							onPress={() => router.push(`/profile/${userId}`)}
+			<Back />
+			<Pressable
+				style={styles.headerLeft}
+				onPress={() =>
+					router.push({
+						pathname: "/profiles",
+						params: {
+							userId: userId,
+						},
+					})
+				}
+			>
+				<View style={styles.avatar}>
+					{profile?.avatar_url ? (
+						<Image
+							source={{ uri: profile.avatar_url }}
+							style={[
+								styles.avatarImage,
+								{
+									backgroundColor: colors.separator,
+								},
+							]}
+						/>
+					) : (
+						<Ionicons
+							name="person"
+							size={20}
+							color={colors.secondary}
+						/>
+					)}
+				</View>
+
+				<View>
+					<Text
+						style={[
+							styles.headerName,
+							{
+								color: colors.text,
+							},
+						]}
+						numberOfLines={1}
+					>
+						{displayName}
+					</Text>
+
+					{profile?.username ? (
+						<Text
+							style={[
+								styles.headerUsername,
+								{
+									color: colors.secondary,
+								},
+							]}
+							numberOfLines={1}
 						>
-							<View style={styles.avatar}>
-								{profile?.avatar_url ? (
-									<View
-										style={[
-											styles.avatarImage,
-											{
-												backgroundColor:
-													colors.separator,
-											},
-										]}
-									/>
-								) : (
-									<Ionicons
-										name="person"
-										size={20}
-										color={colors.secondary}
-									/>
-								)}
-							</View>
-
-							<View>
-								<Text
-									style={[
-										styles.headerName,
-										{
-											color: colors.text,
-										},
-									]}
-									numberOfLines={1}
-								>
-									{displayName}
-								</Text>
-
-								{profile?.username ? (
-									<Text
-										style={[
-											styles.headerUsername,
-											{
-												color: colors.secondary,
-											},
-										]}
-										numberOfLines={1}
-									>
-										@{profile.username}
-									</Text>
-								) : null}
-							</View>
-						</Pressable>
-					),
-					headerRight: () => (
-						<Pressable>
-							<GlassView
-								isInteractive
-								style={styles.moreButton}
-								tintColor={colors.separator}
-							>
-								<Ionicons
-									name="ellipsis-horizontal"
-									size={22}
-									color={colors.text}
-								/>
-							</GlassView>
-						</Pressable>
-					),
-				}}
-			/>
+							@{profile.username}
+						</Text>
+					) : null}
+				</View>
+			</Pressable>
+			<GlassView
+				isInteractive
+				style={styles.moreButton}
+				tintColor={colors.separator}
+			>
+				<Pressable>
+					<MaterialIcons
+						name="more-horiz"
+						size={27}
+						color={Colors[theme as "light" | "dark"].text}
+					/>
+				</Pressable>
+			</GlassView>
 
 			<KeyboardAvoidingView
 				style={[
@@ -391,10 +386,17 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 	},
 	headerLeft: {
+		position: "absolute",
+		top: 60,
+		left: "50%",
+		transform: [{ translateX: -115 }],
 		flexDirection: "row",
 		alignItems: "center",
+		justifyContent: "center",
 		gap: 10,
 		maxWidth: 230,
+		zIndex: 60,
+		height: 50,
 	},
 	avatar: {
 		width: 36,
@@ -417,16 +419,23 @@ const styles = StyleSheet.create({
 		marginTop: 1,
 	},
 	moreButton: {
-		width: 38,
-		height: 38,
-		borderRadius: 19,
-		alignItems: "center",
+		position: "absolute",
+		top: 60,
+		right: 16,
+		width: 50,
+		flexDirection: "row",
+		gap: 25,
+		zIndex: 60,
+		height: 50,
+		borderRadius: 50,
 		justifyContent: "center",
+		alignItems: "center",
 	},
 	messages: {
 		padding: 16,
 		paddingBottom: 20,
 		flexGrow: 1,
+		justifyContent: "flex-end",
 	},
 	messageRow: {
 		width: "100%",
