@@ -2,7 +2,7 @@ import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
 import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { GlassView } from "expo-glass-effect";
+import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -290,143 +290,152 @@ export default function PostContainer({
   };
 
   return (
-    <GlassView style={styles.postContainer}>
-      <Pressable onPress={openProfile} style={styles.postAccount}>
-        {loadingProfile ? (
-          <View style={styles.pfpPlaceholder}>
-            <ActivityIndicator size="small" color={colors.secondary} />
-          </View>
-        ) : (
-          <Image
-            source={
-              profile?.avatar_url
-                ? { uri: profile.avatar_url }
-                : require("@/assets/images/icon.png")
-            }
-            style={styles.pfp}
-          />
-        )}
-
-        {loadingProfile ? (
-          <ActivityIndicator size="small" color={colors.secondary} />
-        ) : (
-          <Text style={[styles.postAccountName, { color: colors.text }]}>
-            @{profile?.username ?? "unknown"}
-          </Text>
-        )}
-
-        <Text style={{ color: colors.secondary }}>{"\u2022"}</Text>
-
-        <Text style={[styles.timeStamp, { color: colors.secondary }]}>
-          {formatRelativeTime(time)}
-        </Text>
-      </Pressable>
-
-      <Image
-        source={{ uri: href }}
-        style={[
-          styles.postImage,
-          {
-            aspectRatio: postImageAspectRatio,
-          },
-        ]}
-        resizeMode="contain"
-        onLoad={(event) => {
-          const { width, height } = event.nativeEvent.source;
-
-          if (width && height) {
-            setPostImageAspectRatio(width / height);
-          }
-        }}
-      />
-
-      <View style={styles.postOptions}>
-        <Pressable onPress={likePost} disabled={likeLoading}>
-          <View style={styles.likeContainer}>
-            <FontAwesome
-              name={isLiked ? "thumbs-up" : "thumbs-o-up"}
-              size={iconSize}
-              color={colors.text}
-            />
-
-            {likeCount > 0 ? (
-              <Text style={[styles.likeCount, { color: colors.text }]}>
-                {likeCount}
-              </Text>
-            ) : null}
-          </View>
-        </Pressable>
-
-        {postSettings.allow_comments && (
-          <Pressable onPress={openComments}>
-            <Ionicons
-              name="chatbubble-outline"
-              size={iconSize}
-              color={colors.text}
-            />
-          </Pressable>
-        )}
-
-        <View style={styles.morePostOptions}>
-          <Host matchContents>
-            <Menu
-              label={
-                <RNHostView matchContents>
-                  <MaterialIcons
-                    name="more-horiz"
-                    color={colors.text}
-                    size={iconSize}
-                  />
-                </RNHostView>
-              }
-            >
-              {isOwnPost ? (
-                <Button
-                  systemImage="pencil"
-                  label="Edit"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/editPost",
-                      params: {
-                        postId: id,
-                      },
-                    })
-                  }
-                />
-              ) : null}
-              {(postSettings.allow_sharing || isOwnPost) && (
-                <Button
-                  systemImage="square.and.arrow.up"
-                  label="Share"
-                  onPress={sharePost}
-                />
-              )}
-
-              <Button
-                systemImage="person"
-                label="Go to Profile"
-                onPress={openProfile}
+    <>
+      {isLiquidGlassAvailable() ? (
+        <GlassView style={styles.postContainer}>
+          <Pressable onPress={openProfile} style={styles.postAccount}>
+            {loadingProfile ? (
+              <View style={styles.pfpPlaceholder}>
+                <ActivityIndicator size="small" color={colors.secondary} />
+              </View>
+            ) : (
+              <Image
+                source={
+                  profile?.avatar_url
+                    ? { uri: profile.avatar_url }
+                    : require("@/assets/images/icon.png")
+                }
+                style={styles.pfp}
               />
+            )}
 
-              {isOwnPost ? (
-                <Button
-                  systemImage="trash"
-                  label="Delete"
-                  role="destructive"
-                  onPress={deletePost}
+            {loadingProfile ? (
+              <ActivityIndicator size="small" color={colors.secondary} />
+            ) : (
+              <Text style={[styles.postAccountName, { color: colors.text }]}>
+                @{profile?.username ?? "unknown"}
+              </Text>
+            )}
+
+            <Text style={{ color: colors.secondary }}>{"\u2022"}</Text>
+
+            <Text style={[styles.timeStamp, { color: colors.secondary }]}>
+              {formatRelativeTime(time)}
+            </Text>
+          </Pressable>
+
+          <Image
+            source={{ uri: href }}
+            style={[
+              styles.postImage,
+              {
+                aspectRatio: postImageAspectRatio,
+              },
+            ]}
+            resizeMode="contain"
+            onLoad={(event) => {
+              const { width, height } = event.nativeEvent.source;
+
+              if (width && height) {
+                setPostImageAspectRatio(width / height);
+              }
+            }}
+          />
+
+          <View style={styles.postOptions}>
+            <Pressable onPress={likePost} disabled={likeLoading}>
+              <View style={styles.likeContainer}>
+                <FontAwesome
+                  name={isLiked ? "thumbs-up" : "thumbs-o-up"}
+                  size={iconSize}
+                  color={colors.text}
                 />
-              ) : (
-                <Button systemImage="exclamationmark.bubble" label="Report" />
-              )}
-            </Menu>
-          </Host>
-        </View>
-      </View>
 
-      {caption ? (
-        <Text style={[styles.caption, { color: colors.text }]}>{caption}</Text>
+                {likeCount > 0 ? (
+                  <Text style={[styles.likeCount, { color: colors.text }]}>
+                    {likeCount}
+                  </Text>
+                ) : null}
+              </View>
+            </Pressable>
+
+            {postSettings.allow_comments && (
+              <Pressable onPress={openComments}>
+                <Ionicons
+                  name="chatbubble-outline"
+                  size={iconSize}
+                  color={colors.text}
+                />
+              </Pressable>
+            )}
+
+            <View style={styles.morePostOptions}>
+              <Host matchContents>
+                <Menu
+                  label={
+                    <RNHostView matchContents>
+                      <MaterialIcons
+                        name="more-horiz"
+                        color={colors.text}
+                        size={iconSize}
+                      />
+                    </RNHostView>
+                  }
+                >
+                  {isOwnPost ? (
+                    <Button
+                      systemImage="pencil"
+                      label="Edit"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/editPost",
+                          params: {
+                            postId: id,
+                          },
+                        })
+                      }
+                    />
+                  ) : null}
+                  {(postSettings.allow_sharing || isOwnPost) && (
+                    <Button
+                      systemImage="square.and.arrow.up"
+                      label="Share"
+                      onPress={sharePost}
+                    />
+                  )}
+
+                  <Button
+                    systemImage="person"
+                    label="Go to Profile"
+                    onPress={openProfile}
+                  />
+
+                  {isOwnPost ? (
+                    <Button
+                      systemImage="trash"
+                      label="Delete"
+                      role="destructive"
+                      onPress={deletePost}
+                    />
+                  ) : (
+                    <Button
+                      systemImage="exclamationmark.bubble"
+                      label="Report"
+                    />
+                  )}
+                </Menu>
+              </Host>
+            </View>
+          </View>
+
+          {caption ? (
+            <Text style={[styles.caption, { color: colors.text }]}>
+              {caption}
+            </Text>
+          ) : null}
+        </GlassView>
       ) : null}
-    </GlassView>
+    </>
   );
 }
 

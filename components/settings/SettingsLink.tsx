@@ -13,10 +13,11 @@ type external = "internal" | "external";
 
 type SettingsLinkProps = {
   title: string;
-  href: string;
+  href?: string;
   type?: external;
   selectedValue?: string;
   danger?: boolean;
+  onPress?: () => void;
 };
 
 export default function SettingsLink({
@@ -25,13 +26,25 @@ export default function SettingsLink({
   type = "internal",
   selectedValue,
   danger,
+  onPress,
 }: SettingsLinkProps) {
   const theme = useColorScheme() ?? "light";
   const colors = Colors[theme as "light" | "dark"];
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+      return;
+    }
+
+    if (href) {
+      router.push(href as any);
+    }
+  };
+
   return (
     <Pressable
-      onPress={() => router.push(href as any)}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.settingsItem,
         pressed && [

@@ -48,48 +48,46 @@ export default function Index() {
   });
 
   return (
-    <>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{
-          backgroundColor: colors.background,
-        }}
-      >
-        <SettingsContainer>
-          <SettingsLink
-            href="/editProfile"
-            title="Account"
-            selectedValue={displayName}
-          />
-          <SettingsLink
-            href="/settings/privacy-security"
-            title="Privacy & Security"
-          />
-        </SettingsContainer>
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      style={{
+        backgroundColor: colors.background,
+      }}
+    >
+      <SettingsContainer>
+        <SettingsLink
+          href="/settings/accountSettings"
+          title="Account"
+          selectedValue={displayName}
+        />
+        <SettingsLink
+          href="/settings/privacy-security"
+          title="Privacy & Security"
+        />
+      </SettingsContainer>
 
-        <SettingsContainer>
-          <SettingsLink href="" title="Appearance" />
-          <SettingsLink href="" title="Notifications" />
-          <SettingsLink href="" title="Circles" />
-        </SettingsContainer>
+      <SettingsContainer>
+        <SettingsLink href="" title="Appearance" />
+        <SettingsLink href="" title="Notifications" />
+        <SettingsLink href="" title="Circles" />
+      </SettingsContainer>
 
-        <SettingsContainer>
-          <SettingsLink
-            href="/subscriptions"
-            title="Subscriptions"
-            selectedValue="Free Plan"
-          />
-          <SettingsLink href="" title="Support Circle" type="external" />
-        </SettingsContainer>
+      <SettingsContainer>
+        <SettingsLink
+          href="/subscriptions"
+          title="Subscriptions"
+          selectedValue="Free Plan"
+        />
+        <SettingsLink href="" title="Support Circle" type="external" />
+      </SettingsContainer>
 
-        <SettingsContainer>
-          <SettingsItem title="Version" subtitle={AppData.version} />
-        </SettingsContainer>
+      <SettingsContainer>
+        <SettingsItem title="Version" subtitle={AppData.version} />
+      </SettingsContainer>
 
-        <SettingsContainer>
-          <SignOut title="Sign Out" />
-        </SettingsContainer>
-      </ScrollView>
-    </>
+      <SettingsContainer>
+        <SignOut title="Sign Out" />
+      </SettingsContainer>
+    </ScrollView>
   );
 }

@@ -31,6 +31,16 @@ export default function settingsLayout() {
         options={{
           headerTransparent: true,
           headerTitle: "Privacy & Security",
+          headerBackButtonDisplayMode: "minimal",
+          headerTitleStyle: { color: colors.text },
+        }}
+      />
+      <Stack.Screen
+        name="accountSettings"
+        options={{
+          headerTransparent: true,
+          headerTitle: "Account",
+          headerBackButtonDisplayMode: "minimal",
           headerTitleStyle: { color: colors.text },
         }}
       />
