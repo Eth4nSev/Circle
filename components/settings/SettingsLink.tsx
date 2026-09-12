@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   },
   settingsItemPressed: {
     opacity: 0.7,
-    borderRadius: 20,
+    borderRadius: 30,
   },
   settingsText: {
     fontSize: 17,

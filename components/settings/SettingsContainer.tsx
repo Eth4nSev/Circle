@@ -5,11 +5,13 @@ import Separator from "../separator";
 
 type SettingsContainerProps = {
   title?: string;
+  subtitle?: string;
   children?: ReactNode;
 };
 
 export default function SettingsContainer({
   title,
+  subtitle,
   children,
 }: SettingsContainerProps) {
   const theme = useColorScheme() ?? "light";
@@ -40,12 +42,24 @@ export default function SettingsContainer({
           </View>
         ))}
       </View>
+      {subtitle && (
+        <Text
+          style={{
+            color: colors.secondary,
+            marginLeft: 20,
+            marginTop: 8,
+            fontSize: 13,
+          }}
+        >
+          {subtitle}
+        </Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   settingsContainer: {
-    borderRadius: 20,
+    borderRadius: 30,
   },
 });
