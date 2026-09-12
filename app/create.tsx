@@ -19,6 +19,7 @@ import {
 	useColorScheme,
 	View,
 } from "react-native";
+import { useAccent } from "./context/accent";
 
 const circleColors = [
 	"#17b3da",
@@ -41,9 +42,10 @@ type Friend = {
 export default function CreateCircle() {
 	const theme = useColorScheme() ?? "light";
 	const colors = Colors[theme as "light" | "dark"];
+	const { accent } = useAccent();
 
 	const [name, setName] = useState("");
-	const [selectedColor, setSelectedColor] = useState(Colors.accent);
+	const [selectedColor, setSelectedColor] = useState(accent);
 	const [icon, setIcon] = useState("");
 	const [chatEnabled, setChatEnabled] = useState(true);
 	const [creating, setCreating] = useState(false);
@@ -431,7 +433,7 @@ export default function CreateCircle() {
 								<Text
 									style={[
 										styles.selectedCount,
-										{ color: Colors.accent },
+										{ color: accent },
 									]}
 								>
 									{selectedFriends.length} selected
@@ -450,7 +452,7 @@ export default function CreateCircle() {
 						>
 							{loadingFriends ? (
 								<View style={styles.loadingFriends}>
-									<ActivityIndicator color={Colors.accent} />
+									<ActivityIndicator color={accent} />
 									<Text
 										style={[
 											styles.loadingText,
@@ -527,7 +529,7 @@ export default function CreateCircle() {
 														styles.friendAvatar,
 														{
 															backgroundColor:
-																Colors.accent,
+																accent,
 														},
 													]}
 												>
@@ -577,11 +579,11 @@ export default function CreateCircle() {
 													styles.selectionCircle,
 													{
 														borderColor: selected
-															? Colors.accent
+															? accent
 															: colors.separator,
 														backgroundColor:
 															selected
-																? Colors.accent
+																? accent
 																: "transparent",
 													},
 												]}
@@ -649,7 +651,7 @@ export default function CreateCircle() {
 									onValueChange={setChatEnabled}
 									trackColor={{
 										false: colors.separator,
-										true: Colors.accent,
+										true: accent,
 									}}
 									thumbColor="#fff"
 									ios_backgroundColor={colors.separator}
@@ -670,7 +672,7 @@ export default function CreateCircle() {
 					]}
 				>
 					<GlassView
-						tintColor={Colors.accent}
+						tintColor={accent}
 						isInteractive
 						style={styles.createButton}
 					>

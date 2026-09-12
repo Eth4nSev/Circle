@@ -6,18 +6,21 @@ import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    useColorScheme,
-    View,
+	ActivityIndicator,
+	Alert,
+	Image,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Switch,
+	Text,
+	TextInput,
+	useColorScheme,
+	View,
 } from "react-native";
+import { useAccent } from "./context/accent";
+
+const { accent } = useAccent();
 
 type PostSettingProps = {
 	icon: keyof typeof Ionicons.glyphMap;
@@ -62,7 +65,7 @@ function PostSetting({
 				onValueChange={onValueChange}
 				trackColor={{
 					false: colors.separator,
-					true: Colors.accent,
+					true: accent,
 				}}
 				thumbColor="#fff"
 				ios_backgroundColor={colors.separator}
@@ -297,7 +300,7 @@ export default function EditPost() {
 					{ backgroundColor: colors.background },
 				]}
 			>
-				<ActivityIndicator size="large" color={Colors.accent} />
+				<ActivityIndicator size="large" color={accent} />
 			</View>
 		);
 	}
@@ -336,7 +339,7 @@ export default function EditPost() {
 							/>
 
 							<GlassView
-								tintColor={Colors.accent}
+								tintColor={accent}
 								isInteractive
 								style={styles.changeButton}
 							>
@@ -463,7 +466,7 @@ export default function EditPost() {
 					]}
 				>
 					<GlassView
-						tintColor={Colors.accent}
+						tintColor={accent}
 						isInteractive
 						style={styles.saveButton}
 					>

@@ -1,4 +1,4 @@
-import { Colors } from "@/styles/colors";
+import { useAccent } from "@/app/context/accent";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
@@ -10,6 +10,8 @@ type props = {
 };
 
 export default function AddPost({ href, style }: props) {
+	const { accent } = useAccent();
+
 	return (
 		<Pressable onPress={() => router.push(href as any)}>
 			<GlassView
@@ -25,7 +27,7 @@ export default function AddPost({ href, style }: props) {
 				]}
 				isInteractive
 			>
-				<Ionicons name="add" size={50} color={Colors.accent} />
+				<Ionicons name="add" size={50} color={accent} />
 			</GlassView>
 		</Pressable>
 	);
