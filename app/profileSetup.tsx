@@ -7,25 +7,23 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ImageBackground,
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  useColorScheme,
-  View,
+	ActivityIndicator,
+	Alert,
+	Image,
+	ImageBackground,
+	Keyboard,
+	Pressable,
+	StyleSheet,
+	Text,
+	TouchableWithoutFeedback,
+	useColorScheme,
+	View,
 } from "react-native";
-import { useAccent } from "./context/accent";
 import { supabase } from "./utils/supabase";
 
 export default function profileSetup() {
 	const theme = useColorScheme() ?? "light";
 	const textColor = Colors[theme as "light" | "dark"].text;
-	const { accent } = useAccent();
 
 	const backgroundImage =
 		theme === "dark"
@@ -249,7 +247,7 @@ export default function profileSetup() {
 								)}
 
 								<GlassView
-									tintColor={accent}
+									tintColor={Colors.accent}
 									style={styles.addButton}
 									isInteractive
 								>
@@ -299,7 +297,7 @@ export default function profileSetup() {
 							}}
 						>
 							<GlassView
-								tintColor={accent}
+								tintColor={Colors.accent}
 								style={styles.continueButton}
 								isInteractive
 							>

@@ -5,22 +5,20 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  ImageBackground,
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  useColorScheme,
-  View,
+	Alert,
+	ImageBackground,
+	Keyboard,
+	Pressable,
+	StyleSheet,
+	Text,
+	TouchableWithoutFeedback,
+	useColorScheme,
+	View,
 } from "react-native";
-import { useAccent } from "./context/accent";
 import { supabase } from "./utils/supabase";
 
 export default function SignUp() {
 	const theme = useColorScheme() ?? "light";
-	const { accent } = useAccent();
 
 	const textColor = Colors[theme as "light" | "dark"].text;
 	const backgroundImage =
@@ -106,7 +104,7 @@ export default function SignUp() {
 							}}
 						>
 							<GlassView
-								tintColor={accent}
+								tintColor={Colors.accent}
 								style={styles.signupButton}
 								isInteractive
 							>
@@ -137,7 +135,7 @@ export default function SignUp() {
 								<Text
 									style={[
 										styles.loginLink,
-										{ color: accent },
+										{ color: Colors.accent },
 									]}
 								>
 									{" "}
