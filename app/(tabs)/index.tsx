@@ -1,5 +1,6 @@
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
+import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
@@ -75,28 +76,39 @@ export default function Index() {
             justifyContent: "space-between",
           }}
         >
-          <GlassView
-            style={{
-              width: 100,
-              height: 50,
-              paddingVertical: 5,
-              justifyContent: "center",
-              alignItems: "center",
-              margin: 10,
-              borderRadius: 50,
-            }}
-            isInteractive
-          >
-            <Text
-              style={{
-                color: colors.text,
-                fontWeight: "bold",
-                fontSize: 20,
-              }}
+          <Host matchContents style={{ marginLeft: 8 }}>
+            <Menu
+              label={
+                <RNHostView matchContents>
+                  <GlassView
+                    style={{
+                      width: 100,
+                      height: 50,
+                      paddingVertical: 5,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      margin: 10,
+                      borderRadius: 50,
+                    }}
+                    isInteractive
+                  >
+                    <Text
+                      style={{
+                        color: colors.text,
+                        fontWeight: "bold",
+                        fontSize: 20,
+                      }}
+                    >
+                      Home
+                    </Text>
+                  </GlassView>
+                </RNHostView>
+              }
             >
-              Home
-            </Text>
-          </GlassView>
+              <Button label="All" />
+              <Button label="Circles" />
+            </Menu>
+          </Host>
           <Pressable onPress={() => router.push("/newPost")}>
             <GlassView
               style={{
