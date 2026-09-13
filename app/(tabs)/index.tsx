@@ -1,11 +1,12 @@
 import PostContainer from "@/components/post";
+import AnimatedEntrance from "@/components/AnimatedEntrance";
+import AnimatedPressable from "@/components/AnimatedPressable";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Animated,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -20,16 +21,6 @@ export default function Index() {
   const colors = Colors[theme as "light" | "dark"];
   const [posts, setPosts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-
-  const scrollY = useRef(new Animated.Value(0)).current;
-
-  const clampedScrollY = scrollY.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-    extrapolateLeft: "clamp",
-  });
-
-  const translateY = Animated.diffClamp(clampedScrollY, 0, 200);
 
   async function getPosts(isRefreshing = false) {
     if (isRefreshing) setRefreshing(true);
@@ -97,7 +88,7 @@ export default function Index() {
               Home
             </Text>
           </GlassView>
-          <Pressable onPress={() => router.push("/newPost")}>
+          <AnimatedPressable onPress={() => router.push("/newPost")}>
             <GlassView
               style={{
                 width: 50,
@@ -112,17 +103,18 @@ export default function Index() {
             >
               <Ionicons name="add" size={30} color={colors.text} />
             </GlassView>
-          </Pressable>
+          </AnimatedPressable>
         </View>
-        {posts.map((post) => (
-          <PostContainer
-            key={post.id}
-            userId={post.user_id}
-            id={post.id}
-            time={post.created_at}
-            href={post.image}
-            caption={post.caption}
-          />
+        {posts.map((post, index) => (
+          <AnimatedEntrance key={post.id} delay={Math.min(index * 45, 300)}>
+            <PostContainer
+              userId={post.user_id}
+              id={post.id}
+              time={post.created_at}
+              href={post.image}
+              caption={post.caption}
+            />
+          </AnimatedEntrance>
         ))}
       </ScrollView>
     </>
