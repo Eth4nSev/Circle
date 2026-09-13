@@ -1,6 +1,7 @@
 import { supabase } from "@/app/utils/supabase";
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
+import AnimatedPressable from "@/components/AnimatedPressable";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { LinearGradient } from "expo-linear-gradient";
@@ -119,23 +120,23 @@ export default function ProfileScreen() {
           },
         ]}
       >
-        <Pressable
+        <AnimatedPressable
           style={styles.settingsButton}
           onPress={() => router.push("/settings/home")}
         >
           <GlassView isInteractive style={styles.glassButton}>
             <MaterialIcons name="settings" size={24} color={colors.text} />
           </GlassView>
-        </Pressable>
+        </AnimatedPressable>
 
-        <Pressable
+        <AnimatedPressable
           style={styles.editButton}
           onPress={() => router.push("/editProfile")}
         >
           <GlassView isInteractive style={styles.glassButton}>
             <Ionicons name="pencil" color={colors.text} size={24} />
           </GlassView>
-        </Pressable>
+        </AnimatedPressable>
 
         {profileImage && (
           <>

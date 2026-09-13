@@ -1,5 +1,7 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
+import AnimatedEntrance from "@/components/AnimatedEntrance";
+import AnimatedPressable from "@/components/AnimatedPressable";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
@@ -218,41 +220,40 @@ export default function Index() {
           ) : (
             <View style={styles.grid}>
               {sortedCircles.map((circle) => (
-                <Pressable
+                <AnimatedEntrance
                   key={circle.id}
-                  onPress={() => openCircle(circle)}
-                  style={({ pressed }) => [
-                    styles.gridItem,
-                    {
-                      opacity: pressed ? 0.65 : 1,
-                    },
-                  ]}
+                  delay={Math.min(sortedCircles.indexOf(circle) * 45, 300)}
                 >
-                  <GlassView style={{ borderRadius: 75 }} isInteractive>
-                    <View
+                  <AnimatedPressable
+                    onPress={() => openCircle(circle)}
+                    style={styles.gridItem}
+                  >
+                    <GlassView style={{ borderRadius: 75 }} isInteractive>
+                      <View
+                        style={[
+                          styles.circleIcon,
+                          {
+                            backgroundColor: circle.color,
+                          },
+                        ]}
+                      >
+                        {getCircleIcon(circle)}
+                      </View>
+                    </GlassView>
+
+                    <Text
+                      numberOfLines={1}
                       style={[
-                        styles.circleIcon,
+                        styles.circleName,
                         {
-                          backgroundColor: circle.color,
+                          color: colors.text,
                         },
                       ]}
                     >
-                      {getCircleIcon(circle)}
-                    </View>
-                  </GlassView>
-
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.circleName,
-                      {
-                        color: colors.text,
-                      },
-                    ]}
-                  >
-                    {circle.name}
-                  </Text>
-                </Pressable>
+                      {circle.name}
+                    </Text>
+                  </AnimatedPressable>
+                </AnimatedEntrance>
               ))}
 
               <Pressable
@@ -299,13 +300,12 @@ export default function Index() {
             ]}
           >
             {sortedCircles.map((circle, index) => (
-              <Pressable
-                key={circle.id}
+              <AnimatedEntrance key={circle.id} delay={Math.min(index * 45, 300)}>
+              <AnimatedPressable
                 onPress={() => openCircle(circle)}
-                style={({ pressed }) => [
+                style={[
                   styles.listItem,
                   {
-                    opacity: pressed ? 0.65 : 1,
                     borderBottomColor:
                       index === sortedCircles.length - 1
                         ? "transparent"
@@ -342,7 +342,8 @@ export default function Index() {
                   size={19}
                   color={colors.secondary}
                 />
-              </Pressable>
+              </AnimatedPressable>
+              </AnimatedEntrance>
             ))}
 
             <Pressable

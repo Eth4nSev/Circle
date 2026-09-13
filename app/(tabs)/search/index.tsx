@@ -1,12 +1,13 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
+import AnimatedEntrance from "@/components/AnimatedEntrance";
+import AnimatedPressable from "@/components/AnimatedPressable";
 import { GlassView } from "expo-glass-effect";
 import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -163,65 +164,66 @@ export default function SearchScreen() {
             </View>
           ) : (
             <View style={styles.results}>
-              {profiles.map((profile) => (
-                <Pressable
+              {profiles.map((profile, index) => (
+                <AnimatedEntrance
                   key={profile.id}
-                  style={({ pressed }) => [
-                    styles.profile,
-                    pressed && styles.profilePressed,
-                  ]}
-                  onPress={() => openProfile(profile.id)}
+                  delay={Math.min(index * 45, 300)}
                 >
-                  <View style={styles.avatarContainer}>
-                    {profile.avatar_url ? (
-                      <Image
-                        source={{ uri: profile.avatar_url }}
-                        style={styles.avatar}
-                      />
-                    ) : (
-                      <View
-                        style={[
-                          styles.avatar,
-                          styles.avatarPlaceholder,
-                          {
-                            backgroundColor: colors.secondary,
-                          },
-                        ]}
-                      >
-                        <Text
+                  <AnimatedPressable
+                    style={styles.profile}
+                    onPress={() => openProfile(profile.id)}
+                  >
+                    <View style={styles.avatarContainer}>
+                      {profile.avatar_url ? (
+                        <Image
+                          source={{ uri: profile.avatar_url }}
+                          style={styles.avatar}
+                        />
+                      ) : (
+                        <View
                           style={[
-                            styles.avatarText,
-                            { color: colors.background },
+                            styles.avatar,
+                            styles.avatarPlaceholder,
+                            {
+                              backgroundColor: colors.secondary,
+                            },
                           ]}
                         >
-                          {(profile.display_name || profile.username || "?")
-                            .charAt(0)
-                            .toUpperCase()}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                          <Text
+                            style={[
+                              styles.avatarText,
+                              { color: colors.background },
+                            ]}
+                          >
+                            {(profile.display_name || profile.username || "?")
+                              .charAt(0)
+                              .toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
 
-                  <View style={styles.profileInfo}>
-                    <Text
-                      style={[styles.name, { color: colors.text }]}
-                      numberOfLines={1}
-                    >
-                      {profile.display_name ||
-                        profile.username ||
-                        "Unnamed account"}
-                    </Text>
-
-                    {profile.username && (
+                    <View style={styles.profileInfo}>
                       <Text
-                        style={[styles.username, { color: colors.secondary }]}
+                        style={[styles.name, { color: colors.text }]}
                         numberOfLines={1}
                       >
-                        @{profile.username}
+                        {profile.display_name ||
+                          profile.username ||
+                          "Unnamed account"}
                       </Text>
-                    )}
-                  </View>
-                </Pressable>
+
+                      {profile.username && (
+                        <Text
+                          style={[styles.username, { color: colors.secondary }]}
+                          numberOfLines={1}
+                        >
+                          @{profile.username}
+                        </Text>
+                      )}
+                    </View>
+                  </AnimatedPressable>
+                </AnimatedEntrance>
               ))}
             </View>
           )}
