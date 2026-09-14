@@ -20,8 +20,6 @@ import {
 } from "react-native";
 import { useAccent } from "./context/accent";
 
-const { accent } = useAccent();
-
 type PostSettingProps = {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
@@ -39,6 +37,7 @@ function PostSetting({
   onValueChange,
   colors,
 }: PostSettingProps) {
+  const { accent } = useAccent();
   return (
     <View style={styles.settingRow}>
       <View style={styles.settingIcon}>
@@ -72,6 +71,7 @@ function PostSetting({
 export default function EditPost() {
   const theme = useColorScheme() ?? "light";
   const colors = Colors[theme as "light" | "dark"];
+  const { accent } = useAccent();
 
   const { postId } = useLocalSearchParams<{ postId: string }>();
 

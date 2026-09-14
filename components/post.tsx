@@ -183,16 +183,23 @@ export default function PostContainer({
 
     setLikeLoading(true);
 
+    const wasLiked = isLiked;
+    setIsLiked(!wasLiked);
+    setLikeCount((count) => Math.max(0, count + (wasLiked ? -1 : 1)));
+    Haptics.selectionAsync().catch((error) => {
+      console.error("Error triggering like haptic:", error);
+    });
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      setIsLiked(wasLiked);
+      setLikeCount((count) => Math.max(0, count + (wasLiked ? 1 : -1)));
       setLikeLoading(false);
       return;
     }
-
-    await Haptics.selectionAsync();
 
     if (isLiked) {
       const { error } = await supabase
@@ -203,9 +210,8 @@ export default function PostContainer({
 
       if (error) {
         console.error("Error unliking post:", error);
-      } else {
-        setIsLiked(false);
-        setLikeCount((count) => Math.max(0, count - 1));
+        setIsLiked(wasLiked);
+        setLikeCount((count) => count + 1);
       }
     } else {
       const { error } = await supabase.from("post_likes").insert({
@@ -215,9 +221,8 @@ export default function PostContainer({
 
       if (error) {
         console.error("Error liking post:", error);
-      } else {
-        setIsLiked(true);
-        setLikeCount((count) => count + 1);
+        setIsLiked(wasLiked);
+        setLikeCount((count) => Math.max(0, count - 1));
       }
     }
 
