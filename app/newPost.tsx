@@ -4,10 +4,11 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
   Pressable,
   ScrollView,
@@ -44,6 +45,16 @@ export default function NewPost() {
   const [circles, setCircles] = useState<Circle[]>([]);
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [showCircles, setShowCircles] = useState(false);
+  const circleListAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(circleListAnimation, {
+      toValue: showCircles ? 1 : 0,
+      useNativeDriver: false,
+      damping: 18,
+      stiffness: 180,
+    }).start();
+  }, [circleListAnimation, showCircles]);
 
   useEffect(() => {
     const loadCircles = async () => {
@@ -362,7 +373,17 @@ export default function NewPost() {
               />
             </Pressable>
 
-            {showCircles && (
+            <Animated.View
+              pointerEvents={showCircles ? "auto" : "none"}
+              style={{
+                maxHeight: circleListAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1000],
+                }),
+                opacity: circleListAnimation,
+                overflow: "hidden",
+              }}
+            >
               <View
                 style={[
                   styles.circleList,
@@ -374,7 +395,11 @@ export default function NewPost() {
                   style={styles.circleOption}
                 >
                   <View style={[styles.circleIcon, styles.publicCircleIcon]}>
-                    <Ionicons name="globe-outline" size={20} color="#fff" />
+                    <Ionicons
+                      name="globe-outline"
+                      size={20}
+                      color={colors.text}
+                    />
                   </View>
 
                   <View style={styles.circleOptionText}>
@@ -458,7 +483,7 @@ export default function NewPost() {
                   );
                 })}
               </View>
-            )}
+            </Animated.View>
           </GlassView>
         </View>
 
