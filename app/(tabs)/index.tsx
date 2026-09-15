@@ -9,7 +9,6 @@ import {
   Animated,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   useColorScheme,
@@ -119,7 +118,7 @@ export default function Index() {
 
   return (
     <>
-      <ScrollView
+      <Animated.ScrollView
         style={{
           backgroundColor: Colors[theme as "light" | "dark"].background,
           flex: 1,
@@ -132,6 +131,11 @@ export default function Index() {
             tintColor={Colors[theme as "light" | "dark"].text}
           />
         }
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
       >
         <View
           style={{
@@ -260,7 +264,19 @@ export default function Index() {
             />
           ))
         )}
-      </ScrollView>
+      </Animated.ScrollView>
+      {/* <Animated.View
+        style={{
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+          position: "absolute",
+          bottom: 100,
+          transform: [{ translateY: translateY }],
+        }}
+      >
+        <AddPost href="/newPost" />
+      </Animated.View> */}
     </>
   );
 }
