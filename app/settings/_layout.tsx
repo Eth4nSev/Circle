@@ -53,6 +53,15 @@ export default function settingsLayout() {
           headerTitleStyle: { color: colors.text },
         }}
       />
+      <Stack.Screen
+        name="circlesSettings"
+        options={{
+          headerTransparent: true,
+          headerTitle: "Circles",
+          headerBackButtonDisplayMode: "minimal",
+          headerTitleStyle: { color: colors.text },
+        }}
+      />
     </Stack>
   );
 }

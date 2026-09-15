@@ -15,6 +15,13 @@ export default function AppearanceSettings() {
       contentInsetAdjustmentBehavior="automatic"
       style={{ backgroundColor: colors.background }}
     >
+      <SettingsContainer
+        title="Add Post Button Placement"
+        subtitle="Place the add post button to your preferred location"
+      >
+        <SettingsItem title="Top" type="option" selected />
+        <SettingsItem title="Bottom" type="option" />
+      </SettingsContainer>
       <SettingsContainer subtitle="Change the accent color app-wide.">
         <SettingsItem title="Accent Color" type="color" />
         <SettingsLink
