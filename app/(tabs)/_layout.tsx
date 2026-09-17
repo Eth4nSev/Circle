@@ -1,39 +1,42 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
-import { useColorScheme } from "react-native";
-import { Colors } from "@/styles/colors";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { useAccent } from "../context/accent";
 
-type TabIconName = keyof typeof Ionicons.glyphMap;
-
 export default function TabLayout() {
-  const { accent } = useAccent();
-  const theme = useColorScheme() ?? "light";
-  const colors = Colors[theme as "light" | "dark"];
+	const { accent } = useAccent();
 
-  const icon = (name: TabIconName, focusedName: TabIconName) =>
-    ({ color, focused }: { color: string; focused: boolean }) => (
-      <Ionicons
-        name={focused ? focusedName : name}
-        size={24}
-        color={focused ? accent : color}
-      />
-    );
-
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: accent,
-        tabBarInactiveTintColor: colors.secondary,
-        tabBarHideOnKeyboard: true,
-        tabBarLabelStyle: { fontSize: 12 },
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: "Home", tabBarIcon: icon("home-outline", "home") }} />
-      <Tabs.Screen name="circles" options={{ title: "Circles", tabBarIcon: icon("ellipse-outline", "ellipse") }} />
-      <Tabs.Screen name="search" options={{ title: "Search", tabBarIcon: icon("search-outline", "search") }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: icon("person-outline", "person") }} />
-    </Tabs>
-  );
+	return (
+		<NativeTabs>
+			<NativeTabs.Trigger name="index">
+				<NativeTabs.Trigger.Icon
+					sf={{ default: "house", selected: "house.fill" }}
+					selectedColor={accent}
+				/>
+				<NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+			</NativeTabs.Trigger>
+			<NativeTabs.Trigger name="circles">
+				<NativeTabs.Trigger.Icon
+					sf={{
+						default: "circle.circle",
+						selected: "circle.circle.fill",
+					}}
+					selectedColor={accent}
+				/>
+				<NativeTabs.Trigger.Label>Circles</NativeTabs.Trigger.Label>
+			</NativeTabs.Trigger>
+			<NativeTabs.Trigger name="search">
+				<NativeTabs.Trigger.Icon
+					sf="magnifyingglass"
+					selectedColor={accent}
+				/>
+				<NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+			</NativeTabs.Trigger>
+			<NativeTabs.Trigger name="profile">
+				<NativeTabs.Trigger.Icon
+					sf={{ default: "person", selected: "person.fill" }}
+					selectedColor={accent}
+				/>
+				<NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+			</NativeTabs.Trigger>
+		</NativeTabs>
+	);
 }
