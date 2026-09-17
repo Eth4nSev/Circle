@@ -1,21 +1,22 @@
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
+import { Button, ContextMenu, Host, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
+	ActivityIndicator,
+	FlatList,
+	Image,
+	KeyboardAvoidingView,
+	Platform,
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	useColorScheme,
+	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
 
@@ -67,20 +68,7 @@ export default function Comments() {
 
 		const { data, error } = await supabase
 			.from("comments")
-			.select(
-				`
-        id,
-        post_id,
-        user_id,
-        content,
-        created_at,
-        profiles (
-          username,
-          display_name,
-          avatar_url
-        )
-      `,
-			)
+			.select("id, post_id, user_id, content, created_at")
 			.eq("post_id", postId)
 			.order("created_at", { ascending: true });
 
@@ -90,14 +78,22 @@ export default function Comments() {
 			return;
 		}
 
-		setComments(
-			(data ?? []).map((item) => ({
-				...item,
-				profiles: Array.isArray(item.profiles)
-					? (item.profiles[0] ?? null)
-					: (item.profiles ?? null),
-			})) as Comment[],
+		const commentsWithProfiles = await Promise.all(
+			(data ?? []).map(async (item) => {
+				const { data: profile } = await supabase
+					.from("profiles")
+					.select("username, display_name, avatar_url")
+					.eq("id", item.user_id)
+					.single();
+
+				return {
+					...item,
+					profiles: profile ?? null,
+				};
+			}),
 		);
+
+		setComments(commentsWithProfiles as Comment[]);
 		setLoading(false);
 	}
 
@@ -115,20 +111,7 @@ export default function Comments() {
 				user_id: userId,
 				content,
 			})
-			.select(
-				`
-        id,
-        post_id,
-        user_id,
-        content,
-        created_at,
-        profiles (
-          username,
-          display_name,
-          avatar_url
-        )
-      `,
-			)
+			.select("id, post_id, user_id, content, created_at")
 			.single();
 
 		if (error) {
@@ -138,9 +121,11 @@ export default function Comments() {
 		}
 
 		if (data) {
-			const profile = Array.isArray(data.profiles)
-				? (data.profiles[0] ?? null)
-				: (data.profiles ?? null);
+			const { data: profile } = await supabase
+				.from("profiles")
+				.select("username, display_name, avatar_url")
+				.eq("id", data.user_id)
+				.single();
 
 			const newComment: Comment = {
 				id: data.id,
@@ -148,7 +133,7 @@ export default function Comments() {
 				user_id: data.user_id,
 				content: data.content,
 				created_at: data.created_at,
-				profiles: profile as CommentProfile | null,
+				profiles: profile ?? null,
 			};
 
 			setComments((current) => [...current, newComment]);
@@ -175,54 +160,106 @@ export default function Comments() {
 		setComments((current) => current.filter((item) => item.id !== id));
 	}
 
-	function renderComment({ item }: { item: Comment }) {
-		const isOwner = item.user_id === userId;
+	const openProfile = () => {
+		router.back();
+
+		setTimeout(() => {
+			if (userId === userId) {
+				router.push("/(tabs)/profile");
+			} else {
+				router.push({
+					pathname: "/profiles",
+					params: {
+						id: userId,
+					},
+				});
+			}
+		}, 300);
+	};
+
+	function renderComment({ item, index }: { item: Comment; index: number }) {
+		const isMine = item.user_id === userId;
 
 		const displayName =
 			item.profiles?.display_name || item.profiles?.username || "User";
 
 		const username = item.profiles?.username || "user";
 
+		const previousComment = comments[index - 1];
+
+		const showTimestamp =
+			!previousComment ||
+			new Date(item.created_at).getTime() -
+				new Date(previousComment.created_at).getTime() >
+				60 * 60 * 1000;
+
 		return (
-			<GlassView
-				style={styles.commentCard}
-				tintColor={colors.card}
-				isInteractive
-			>
-				<View style={styles.comment}>
-					<View
+			<View>
+				{showTimestamp ? (
+					<Text
 						style={[
-							styles.avatar,
-							{
-								backgroundColor: colors.clear,
-								borderColor: colors.separator,
-							},
+							styles.messageTimestamp,
+							{ color: colors.secondary },
 						]}
 					>
-						{item.profiles?.avatar_url ? (
-							<Image
-								source={{ uri: item.profiles.avatar_url }}
-								style={styles.avatarImage}
-							/>
-						) : (
-							<Text
-								style={[
-									styles.avatarText,
-									{ color: colors.text },
-								]}
-							>
-								{displayName.charAt(0).toUpperCase()}
-							</Text>
-						)}
-					</View>
+						{new Date(item.created_at).toLocaleString([], {
+							month: "short",
+							day: "numeric",
+							hour: "numeric",
+							minute: "2-digit",
+						})}
+					</Text>
+				) : null}
 
-					<View style={styles.commentBody}>
-						<View style={styles.nameRow}>
+				<View
+					style={[styles.commentRow, isMine && styles.commentRowMine]}
+				>
+					{!isMine && (
+						<View
+							style={[
+								styles.avatar,
+								{
+									backgroundColor: colors.clear,
+									borderColor: colors.separator,
+								},
+							]}
+						>
+							{item.profiles?.avatar_url ? (
+								<Image
+									source={{ uri: item.profiles.avatar_url }}
+									style={styles.avatarImage}
+								/>
+							) : (
+								<Text
+									style={[
+										styles.avatarText,
+										{ color: colors.text },
+									]}
+								>
+									{displayName.charAt(0).toUpperCase()}
+								</Text>
+							)}
+						</View>
+					)}
+
+					<View
+						style={[
+							styles.commentContent,
+							isMine && styles.commentContentMine,
+						]}
+					>
+						<View
+							style={[
+								styles.nameRow,
+								isMine && styles.nameRowMine,
+							]}
+						>
 							<Text
 								style={[
 									styles.displayName,
 									{ color: colors.text },
 								]}
+								numberOfLines={1}
 							>
 								{displayName}
 							</Text>
@@ -232,44 +269,70 @@ export default function Comments() {
 									styles.username,
 									{ color: colors.secondary },
 								]}
+								numberOfLines={1}
 							>
 								@{username}
 							</Text>
 						</View>
 
-						<Text
-							style={[styles.commentText, { color: colors.text }]}
-						>
-							{item.content}
-						</Text>
+						<Host>
+							<ContextMenu>
+								<ContextMenu.Items>
+									<Button
+										systemImage="person"
+										label="Go to Profile"
+										onPress={openProfile}
+									/>
+									{isMine && (
+										<Button
+											systemImage="trash"
+											label="Delete"
+											role="destructive"
+											onPress={() =>
+												deleteComment(item.id)
+											}
+										/>
+									)}
+								</ContextMenu.Items>
 
-						<Text
-							style={[styles.date, { color: colors.secondary }]}
-						>
-							{formatDate(item.created_at)}
-						</Text>
+								<ContextMenu.Trigger>
+									<RNHostView matchContents>
+										<View
+											style={[
+												styles.commentBubble,
+												{
+													backgroundColor: isMine
+														? accent
+														: colors.card,
+												},
+											]}
+										>
+											<Text
+												style={[
+													styles.commentText,
+													{
+														color: isMine
+															? "#fff"
+															: colors.text,
+													},
+												]}
+											>
+												{item.content}
+											</Text>
+										</View>
+									</RNHostView>
+								</ContextMenu.Trigger>
+							</ContextMenu>
+						</Host>
 					</View>
-
-					{isOwner && (
-						<Pressable
-							onPress={() => deleteComment(item.id)}
-							hitSlop={10}
-						>
-							<Ionicons
-								name="trash-outline"
-								size={18}
-								color={colors.secondary}
-							/>
-						</Pressable>
-					)}
 				</View>
-			</GlassView>
+			</View>
 		);
 	}
 
 	return (
 		<KeyboardAvoidingView
-			style={[styles.container]}
+			style={styles.container}
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 			keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
 		>
@@ -277,6 +340,7 @@ export default function Comments() {
 				<Text style={[styles.title, { color: colors.text }]}>
 					Comments
 				</Text>
+
 				<GlassView
 					style={{
 						width: 50,
@@ -311,23 +375,14 @@ export default function Comments() {
 						/>
 					</View>
 
-					<Text
-						style={[
-							styles.emptyTitle,
-							{
-								color: colors.text,
-							},
-						]}
-					>
+					<Text style={[styles.emptyTitle, { color: colors.text }]}>
 						No comments yet
 					</Text>
 
 					<Text
 						style={[
 							styles.emptySubtitle,
-							{
-								color: colors.secondary,
-							},
+							{ color: colors.secondary },
 						]}
 					>
 						Be the first to comment.
@@ -349,16 +404,12 @@ export default function Comments() {
 					<TextInput
 						value={comment}
 						onChangeText={setComment}
-						placeholder="Write a comment..."
+						placeholder="Comment"
 						placeholderTextColor={colors.secondary}
 						multiline
 						maxLength={500}
-						style={[
-							styles.input,
-							{
-								color: colors.text,
-							},
-						]}
+						editable={!sending}
+						style={[styles.input, { color: colors.text }]}
 					/>
 
 					<Pressable
@@ -367,43 +418,24 @@ export default function Comments() {
 						style={[
 							styles.sendButton,
 							{
-								backgroundColor: accent,
-								opacity: !comment.trim() || sending ? 0.4 : 1,
+								opacity: comment.trim() && !sending ? 1 : 0.35,
 							},
 						]}
 					>
 						{sending ? (
-							<ActivityIndicator color="#fff" size="small" />
+							<ActivityIndicator color={accent} size="small" />
 						) : (
-							<Ionicons name="arrow-up" size={20} color="#fff" />
+							<Ionicons
+								name="arrow-up-circle"
+								size={34}
+								color={accent}
+							/>
 						)}
 					</Pressable>
 				</GlassView>
 			</View>
 		</KeyboardAvoidingView>
 	);
-}
-
-function formatDate(date: string) {
-	const created = new Date(date);
-	const now = new Date();
-
-	const difference = now.getTime() - created.getTime();
-
-	const minutes = Math.floor(difference / 60000);
-
-	if (minutes < 1) return "now";
-	if (minutes < 60) return `${minutes}m`;
-
-	const hours = Math.floor(minutes / 60);
-
-	if (hours < 24) return `${hours}h`;
-
-	const days = Math.floor(hours / 24);
-
-	if (days < 7) return `${days}d`;
-
-	return created.toLocaleDateString();
 }
 
 const styles = StyleSheet.create({
@@ -429,29 +461,32 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingTop: 8,
 		paddingBottom: 16,
-		gap: 10,
+		gap: 4,
+		flexGrow: 1,
+		justifyContent: "flex-end",
 	},
 
-	commentCard: {
-		borderRadius: 22,
-		overflow: "hidden",
-	},
-
-	comment: {
+	commentRow: {
+		width: "100%",
 		flexDirection: "row",
-		alignItems: "flex-start",
-		gap: 12,
-		padding: 14,
+		alignItems: "flex-end",
+		marginBottom: 10,
+		gap: 8,
+	},
+
+	commentRowMine: {
+		justifyContent: "flex-end",
 	},
 
 	avatar: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
+		width: 30,
+		height: 30,
+		borderRadius: 15,
 		borderWidth: 1,
 		justifyContent: "center",
 		alignItems: "center",
 		overflow: "hidden",
+		marginBottom: 2,
 	},
 
 	avatarImage: {
@@ -460,38 +495,61 @@ const styles = StyleSheet.create({
 	},
 
 	avatarText: {
-		fontSize: 15,
+		fontSize: 13,
 		fontWeight: "600",
 	},
 
-	commentBody: {
-		flex: 1,
+	commentContent: {
+		maxWidth: "78%",
+		alignItems: "flex-start",
+	},
+
+	commentContentMine: {
+		alignItems: "flex-end",
 	},
 
 	nameRow: {
 		flexDirection: "row",
 		alignItems: "center",
-		gap: 7,
+		gap: 6,
+		marginBottom: 4,
+		paddingHorizontal: 4,
+	},
+
+	nameRowMine: {
+		justifyContent: "flex-end",
 	},
 
 	displayName: {
-		fontSize: 15,
+		fontSize: 13,
 		fontWeight: "600",
 	},
 
 	username: {
-		fontSize: 13,
+		fontSize: 12,
+	},
+
+	commentBubble: {
+		paddingHorizontal: 14,
+		paddingVertical: 9,
+		borderRadius: 18,
 	},
 
 	commentText: {
-		fontSize: 15,
+		fontSize: 16,
 		lineHeight: 21,
-		marginTop: 4,
 	},
 
-	date: {
+	deleteButton: {
+		marginTop: 4,
+		paddingHorizontal: 4,
+	},
+
+	messageTimestamp: {
 		fontSize: 12,
-		marginTop: 6,
+		textAlign: "center",
+		marginTop: 8,
+		marginBottom: 8,
 	},
 
 	center: {
@@ -528,31 +586,28 @@ const styles = StyleSheet.create({
 	},
 
 	inputGlass: {
-		minHeight: 58,
-		maxHeight: 125,
-		borderRadius: 29,
+		minHeight: 48,
+		maxHeight: 130,
+		borderRadius: 24,
+		paddingLeft: 16,
+		paddingRight: 6,
 		flexDirection: "row",
 		alignItems: "flex-end",
-		paddingLeft: 17,
-		paddingRight: 8,
-		paddingVertical: 8,
-		overflow: "hidden",
+		justifyContent: "center",
 	},
 
 	input: {
 		flex: 1,
-		minHeight: 42,
-		maxHeight: 105,
-		paddingVertical: 9,
-		paddingRight: 8,
-		fontSize: 15,
+		fontSize: 16,
+		paddingTop: 12,
+		paddingBottom: 12,
+		maxHeight: 110,
 	},
 
 	sendButton: {
-		width: 42,
-		height: 42,
-		borderRadius: 21,
-		justifyContent: "center",
+		width: 40,
+		height: 46,
 		alignItems: "center",
+		justifyContent: "center",
 	},
 });

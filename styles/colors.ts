@@ -12,6 +12,7 @@ export const Colors = {
 		google: "#fff",
 		googleText: "#1F1F1F",
 		stats: "rgba(242,242,246,0.75)",
+		followButton: "#333",
 	},
 	dark: {
 		background: "#000",
@@ -26,6 +27,7 @@ export const Colors = {
 		google: "#131314",
 		googleText: "#E3E3E3",
 		stats: "rgba(0,0,0,0.75)",
+		followButton: "#888",
 	},
 	accent: "#17b3da",
 };

@@ -650,11 +650,9 @@ export default function CreateCircle() {
 									value={chatEnabled}
 									onValueChange={setChatEnabled}
 									trackColor={{
-										false: colors.separator,
 										true: accent,
 									}}
 									thumbColor="#fff"
-									ios_backgroundColor={colors.separator}
 								/>
 							</View>
 						</GlassView>
