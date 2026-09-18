@@ -260,6 +260,31 @@ export default function RootLayout() {
 				/>
 
 				<Stack.Screen
+					name="circleChat"
+					options={{
+						headerShown: false,
+						presentation: "card",
+						gestureEnabled: true,
+					}}
+				/>
+				<Stack.Screen
+					name="circleMembers"
+					options={{
+						headerShown: false,
+						presentation: "card",
+						gestureEnabled: true,
+					}}
+				/>
+				<Stack.Screen
+					name="circleSettings"
+					options={{
+						headerShown: false,
+						presentation: "card",
+						gestureEnabled: true,
+					}}
+				/>
+
+				<Stack.Screen
 					name="comments"
 					options={{
 						presentation: "formSheet",

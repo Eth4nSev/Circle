@@ -278,7 +278,14 @@ export default function CircleScreen() {
             </GlassView>
           </Pressable>
           {circle.chat_enabled && (
-            <Pressable>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/circleChat",
+                  params: { circleId: circle.id },
+                })
+              }
+            >
               <GlassView isInteractive style={styles.glassButton}>
                 <Ionicons
                   name="chatbubble-outline"
@@ -302,13 +309,25 @@ export default function CircleScreen() {
                   </RNHostView>
                 }
               >
-                <Button systemImage="person.2" label="Members" />
-                <Button systemImage="gear" label={`${circle.name} Settings`} />
                 <Button
-                  systemImage="trash"
-                  label="Delete Circle"
-                  role="destructive"
-                  onPress={confirmDeleteCircle}
+                  systemImage="person.2"
+                  label="Members"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/circleMembers",
+                      params: { circleId: circle.id },
+                    })
+                  }
+                />
+                <Button
+                  systemImage="gear"
+                  label={`${circle.name} Settings`}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/circleSettings",
+                      params: { circleId: circle.id },
+                    })
+                  }
                 />
               </Menu>
             </Host>
