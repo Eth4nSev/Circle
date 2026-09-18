@@ -252,6 +252,14 @@ export default function RootLayout() {
 					}}
 				/>
 				<Stack.Screen
+					name="invites"
+					options={{
+						presentation: "card",
+						gestureEnabled: true,
+					}}
+				/>
+
+				<Stack.Screen
 					name="comments"
 					options={{
 						presentation: "formSheet",
