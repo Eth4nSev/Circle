@@ -59,41 +59,70 @@ export default function CircleInvites() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("circle_invitations")
-        .select(
-          `
-            id,
-            circle_id,
-            inviter_id,
-            status,
-            circles (
-              id,
-              name,
-              color,
-              icon_type,
-              icon_value
-            ),
-            inviter:profiles!circle_invitations_inviter_id_fkey (
-              id,
-              username,
-              display_name,
-              avatar_url
-            )
-          `,
-        )
-        .eq("invitee_id", user.id)
-        .eq("status", "pending")
-        .order("id", { ascending: false });
+      const { data: invitationData, error: invitationError } =
+        await supabase
+          .from("circle_invitations")
+          .select("id, circle_id, inviter_id, status")
+          .eq("invitee_id", user.id)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching Circle invitations:", error);
+      if (invitationError) {
+        console.error(
+          "Error fetching Circle invitations:",
+          invitationError,
+        );
         Alert.alert("Error", "Circle invites could not be loaded.");
         setInvitations([]);
         return;
       }
 
-      setInvitations((data ?? []) as unknown as Invitation[]);
+      const rows = invitationData ?? [];
+
+      if (rows.length === 0) {
+        setInvitations([]);
+        return;
+      }
+
+      const circleIds = [...new Set(rows.map((item) => item.circle_id))];
+      const inviterIds = [...new Set(rows.map((item) => item.inviter_id))];
+
+      const [{ data: circleData, error: circleError }, { data: profileData, error: profileError }] =
+        await Promise.all([
+          supabase
+            .from("circles")
+            .select("id, name, color, icon_type, icon_value")
+            .in("id", circleIds),
+          supabase
+            .from("profiles")
+            .select("id, username, display_name, avatar_url")
+            .in("id", inviterIds),
+        ]);
+
+      if (circleError || profileError) {
+        console.error(
+          "Error loading invitation details:",
+          circleError || profileError,
+        );
+        Alert.alert("Error", "Circle invite details could not be loaded.");
+        setInvitations([]);
+        return;
+      }
+
+      const circlesById = new Map(
+        (circleData ?? []).map((circle) => [circle.id, circle]),
+      );
+      const profilesById = new Map(
+        (profileData ?? []).map((profile) => [profile.id, profile]),
+      );
+
+      setInvitations(
+        rows.map((invitation) => ({
+          ...invitation,
+          circles: circlesById.get(invitation.circle_id) ?? null,
+          inviter: profilesById.get(invitation.inviter_id) ?? null,
+        })),
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
