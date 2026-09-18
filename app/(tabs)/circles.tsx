@@ -149,6 +149,16 @@ export default function Index() {
           </Text>
 
           <View style={styles.headerActions}>
+            <Pressable onPress={() => router.push("/invites")}>
+              <GlassView style={styles.headerButton} isInteractive>
+                <Ionicons
+                  name="mail-outline"
+                  size={24}
+                  color={colors.text}
+                />
+              </GlassView>
+            </Pressable>
+
             <Pressable
               onPress={() =>
                 setView((current) => (current === "grid" ? "list" : "grid"))
