@@ -1,182 +1,637 @@
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import { Colors } from "@/styles/colors";
+import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 import { useAccent } from "./context/accent";
 
 type Member = {
-  user_id: string;
-  role: "admin" | "manager" | "member";
-  display_name: string | null;
-  username: string | null;
-  avatar_url: string | null;
+	user_id: string;
+	role: "admin" | "manager" | "member";
+	display_name: string | null;
+	username: string | null;
+	avatar_url: string | null;
 };
 
 export default function CircleMembers() {
-  const { circleId } = useLocalSearchParams<{ circleId: string }>();
-  const theme = useColorScheme() ?? "light";
-  const colors = Colors[theme as "light" | "dark"];
-  const { accent } = useAccent();
-  const [circleName, setCircleName] = useState("Circle");
-  const [members, setMembers] = useState<Member[]>([]);
-  const [currentUserRole, setCurrentUserRole] = useState<Member["role"] | null>(null);
-  const [loading, setLoading] = useState(true);
+	const { circleId } = useLocalSearchParams<{ circleId: string }>();
+	const theme = useColorScheme() ?? "light";
+	const colors = Colors[theme as "light" | "dark"];
+	const { accent } = useAccent();
 
-  const loadMembers = async () => {
-    if (!circleId) return;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
+	const [circleName, setCircleName] = useState("Circle");
+	const [members, setMembers] = useState<Member[]>([]);
+	const [currentUserRole, setCurrentUserRole] = useState<
+		Member["role"] | null
+	>(null);
+	const [loading, setLoading] = useState(true);
 
-    const [{ data: circle }, { data: rows, error }] = await Promise.all([
-      supabase.from("circles").select("name").eq("id", circleId).single(),
-      supabase.from("circle_members").select("user_id, role").eq("circle_id", circleId),
-    ]);
+	const loadMembers = async () => {
+		if (!circleId) return;
 
-    if (circle) setCircleName(circle.name);
-    if (error) {
-      console.error("Error loading Circle members:", error);
-      setLoading(false);
-      return;
-    }
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
 
-    const memberRows = rows ?? [];
-    const userIds = memberRows.map((member) => member.user_id);
-    const { data: profiles } = userIds.length
-      ? await supabase.from("profiles").select("id, display_name, username, avatar_url").in("id", userIds)
-      : { data: [] };
+		if (!user) {
+			router.replace("/login");
+			return;
+		}
 
-    const profileMap = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
-    setMembers(memberRows.map((member) => {
-      const profile = profileMap.get(member.user_id);
-      return {
-        user_id: member.user_id,
-        role: member.role,
-        display_name: profile?.display_name ?? null,
-        username: profile?.username ?? null,
-        avatar_url: profile?.avatar_url ?? null,
-      };
-    }));
-    setCurrentUserRole(memberRows.find((member) => member.user_id === user.id)?.role ?? null);
-    setLoading(false);
-  };
+		const [{ data: circle }, { data: rows, error }] = await Promise.all([
+			supabase.from("circles").select("name").eq("id", circleId).single(),
 
-  useEffect(() => {
-    loadMembers();
-  }, [circleId]);
+			supabase
+				.from("circle_members")
+				.select("user_id, role")
+				.eq("circle_id", circleId),
+		]);
 
-  const changeRole = async (member: Member, role: "manager" | "member") => {
-    if (!circleId || currentUserRole !== "admin" || member.role === "admin") return;
-    const { error } = await supabase.from("circle_members").update({ role }).eq("circle_id", circleId).eq("user_id", member.user_id);
-    if (error) {
-      console.error("Error changing Circle role:", error);
-      Alert.alert("Error", "The member role could not be changed.");
-      return;
-    }
-    setMembers((current) => current.map((item) => item.user_id === member.user_id ? { ...item, role } : item));
-  };
+		if (circle) {
+			setCircleName(circle.name);
+		}
 
-  const openRoleMenu = (member: Member) => {
-    if (currentUserRole !== "admin" || member.role === "admin") return;
-    Alert.alert("Change Role", member.display_name || member.username || "Circle member", [
-      { text: "Manager", onPress: () => changeRole(member, "manager") },
-      { text: "Member", onPress: () => changeRole(member, "member") },
-      { text: "Cancel", style: "cancel" },
-    ]);
-  };
+		if (error) {
+			console.error("Error loading Circle members:", error);
+			setLoading(false);
+			return;
+		}
 
-  const removeMember = (member: Member) => {
-    if (!circleId || !["admin", "manager"].includes(currentUserRole ?? "") || member.role === "admin") return;
-    Alert.alert("Remove Member", `Remove ${member.display_name || member.username || "this member"} from ${circleName}?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: async () => {
-          const { error } = await supabase.from("circle_members").delete().eq("circle_id", circleId).eq("user_id", member.user_id);
-          if (error) {
-            console.error("Error removing Circle member:", error);
-            Alert.alert("Error", "The member could not be removed.");
-            return;
-          }
-          setMembers((current) => current.filter((item) => item.user_id !== member.user_id));
-        },
-      },
-    ]);
-  };
+		const memberRows = rows ?? [];
+		const userIds = memberRows.map((member) => member.user_id);
 
-  if (loading) return <View style={[styles.loading, { backgroundColor: colors.background }]}><ActivityIndicator /></View>;
+		const { data: profiles } = userIds.length
+			? await supabase
+					.from("profiles")
+					.select("id, display_name, username, avatar_url")
+					.in("id", userIds)
+			: { data: [] };
 
-  return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Back />
-        <Text style={[styles.title, { color: colors.text }]}>{circleName} Members</Text>
-        <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Text style={[styles.subtitle, { color: colors.secondary }]}>{members.length} {members.length === 1 ? "member" : "members"}</Text>
-          <GlassView style={[styles.list, { backgroundColor: colors.clear, borderColor: colors.separator }]}>
-            {members.map((member, index) => {
-              const displayName = member.display_name || member.username || "Circle member";
-              const canRemove = ["admin", "manager"].includes(currentUserRole ?? "") && member.role !== "admin";
-              const canChangeRole = currentUserRole === "admin" && member.role !== "admin";
-              return (
-                <View key={member.user_id} style={[styles.row, index < members.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
-                  {member.avatar_url ? (
-                    <Image source={{ uri: member.avatar_url }} style={styles.avatar} />
-                  ) : (
-                    <View style={[styles.avatar, { backgroundColor: accent }]}>
-                      <Text style={styles.avatarText}>{displayName.charAt(0).toUpperCase()}</Text>
-                    </View>
-                  )}
-                  <View style={styles.info}>
-                    <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{displayName}</Text>
-                    {member.username && member.display_name ? <Text style={[styles.username, { color: colors.secondary }]}>@{member.username}</Text> : null}
-                  </View>
-                  <View style={styles.actions}>
-                    <Pressable disabled={!canChangeRole} onPress={() => openRoleMenu(member)} style={styles.roleButton}>
-                      <Text style={[styles.role, { color: member.role === "admin" ? accent : colors.secondary }]}>
-                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                      </Text>
-                      {canChangeRole ? <MaterialIcons name="expand-more" size={20} color={colors.secondary} /> : null}
-                    </Pressable>
-                    {canRemove ? (
-                      <Pressable onPress={() => removeMember(member)} style={styles.removeButton}>
-                        <Ionicons name="person-remove-outline" size={21} color="#ff3b30" />
-                      </Pressable>
-                    ) : null}
-                  </View>
-                </View>
-              );
-            })}
-          </GlassView>
-        </ScrollView>
-      </View>
-    </>
-  );
+		const profileMap = new Map(
+			(profiles ?? []).map((profile) => [profile.id, profile]),
+		);
+
+		setMembers(
+			memberRows.map((member) => {
+				const profile = profileMap.get(member.user_id);
+
+				return {
+					user_id: member.user_id,
+					role: member.role,
+					display_name: profile?.display_name ?? null,
+					username: profile?.username ?? null,
+					avatar_url: profile?.avatar_url ?? null,
+				};
+			}),
+		);
+
+		setCurrentUserRole(
+			memberRows.find((member) => member.user_id === user.id)?.role ??
+				null,
+		);
+
+		setLoading(false);
+	};
+
+	useEffect(() => {
+		loadMembers();
+	}, [circleId]);
+
+	const changeRole = async (member: Member, role: "manager" | "member") => {
+		if (
+			!circleId ||
+			currentUserRole !== "admin" ||
+			member.role === "admin"
+		) {
+			return;
+		}
+
+		const { error } = await supabase
+			.from("circle_members")
+			.update({ role })
+			.eq("circle_id", circleId)
+			.eq("user_id", member.user_id);
+
+		if (error) {
+			console.error("Error changing Circle role:", error);
+
+			Alert.alert("Error", "The member role could not be changed.");
+
+			return;
+		}
+
+		setMembers((current) =>
+			current.map((item) =>
+				item.user_id === member.user_id ? { ...item, role } : item,
+			),
+		);
+	};
+
+	const removeMember = (member: Member) => {
+		if (
+			!circleId ||
+			!["admin", "manager"].includes(currentUserRole ?? "") ||
+			member.role === "admin"
+		) {
+			return;
+		}
+
+		Alert.alert(
+			"Remove Member",
+			`Remove ${
+				member.display_name || member.username || "this member"
+			} from ${circleName}?`,
+			[
+				{
+					text: "Cancel",
+					style: "cancel",
+				},
+				{
+					text: "Remove",
+					style: "destructive",
+					onPress: async () => {
+						const { error } = await supabase
+							.from("circle_members")
+							.delete()
+							.eq("circle_id", circleId)
+							.eq("user_id", member.user_id);
+
+						if (error) {
+							console.error(
+								"Error removing Circle member:",
+								error,
+							);
+
+							Alert.alert(
+								"Error",
+								"The member could not be removed.",
+							);
+
+							return;
+						}
+
+						setMembers((current) =>
+							current.filter(
+								(item) => item.user_id !== member.user_id,
+							),
+						);
+					},
+				},
+			],
+		);
+	};
+
+	const openInviteScreen = () => {
+		if (!circleId) return;
+
+		router.push({
+			pathname: "/circleInvites",
+			params: {
+				circleId,
+			},
+		});
+	};
+
+	if (loading) {
+		return (
+			<View
+				style={[
+					styles.loading,
+					{
+						backgroundColor: colors.background,
+					},
+				]}
+			>
+				<ActivityIndicator color={accent} />
+			</View>
+		);
+	}
+
+	return (
+		<>
+			<Stack.Screen
+				options={{
+					headerShown: false,
+				}}
+			/>
+
+			<View
+				style={[
+					styles.container,
+					{
+						backgroundColor: colors.background,
+					},
+				]}
+			>
+				<Back />
+
+				<Text
+					style={[
+						styles.title,
+						{
+							color: colors.text,
+						},
+					]}
+				>
+					{circleName} Members
+				</Text>
+
+				<ScrollView
+					contentInsetAdjustmentBehavior="automatic"
+					contentContainerStyle={styles.content}
+					showsVerticalScrollIndicator={false}
+				>
+					<View style={styles.memberHeader}>
+						<Text
+							style={[
+								styles.subtitle,
+								{
+									color: colors.secondary,
+								},
+							]}
+						>
+							{members.length}{" "}
+							{members.length === 1 ? "member" : "members"}
+						</Text>
+
+						<Pressable onPress={openInviteScreen}>
+							<GlassView
+								isInteractive
+								style={styles.inviteButton}
+							>
+								<Ionicons
+									name="person-add-outline"
+									size={18}
+									color={accent}
+								/>
+
+								<Text
+									style={[
+										styles.inviteButtonText,
+										{
+											color: accent,
+										},
+									]}
+								>
+									Invite
+								</Text>
+							</GlassView>
+						</Pressable>
+					</View>
+
+					<GlassView
+						style={[
+							styles.list,
+							{
+								backgroundColor: colors.clear,
+								borderColor: colors.separator,
+							},
+						]}
+					>
+						{members.map((member, index) => {
+							const displayName =
+								member.display_name ||
+								member.username ||
+								"Circle member";
+
+							const canRemove =
+								["admin", "manager"].includes(
+									currentUserRole ?? "",
+								) && member.role !== "admin";
+
+							const canChangeRole =
+								currentUserRole === "admin" &&
+								member.role !== "admin";
+
+							return (
+								<View
+									key={member.user_id}
+									style={[
+										styles.row,
+										index < members.length - 1 && {
+											borderBottomWidth:
+												StyleSheet.hairlineWidth,
+											borderBottomColor: colors.separator,
+										},
+									]}
+								>
+									{member.avatar_url ? (
+										<Image
+											source={{
+												uri: member.avatar_url,
+											}}
+											style={styles.avatar}
+										/>
+									) : (
+										<View
+											style={[
+												styles.avatar,
+												{
+													backgroundColor: accent,
+												},
+											]}
+										>
+											<Text style={styles.avatarText}>
+												{displayName
+													.charAt(0)
+													.toUpperCase()}
+											</Text>
+										</View>
+									)}
+
+									<View style={styles.info}>
+										<Text
+											style={[
+												styles.name,
+												{
+													color: colors.text,
+												},
+											]}
+											numberOfLines={1}
+										>
+											{displayName}
+										</Text>
+
+										{member.username &&
+										member.display_name ? (
+											<Text
+												style={[
+													styles.username,
+													{
+														color: colors.secondary,
+													},
+												]}
+											>
+												@{member.username}
+											</Text>
+										) : null}
+									</View>
+
+									<View style={styles.actions}>
+										{canChangeRole ? (
+											<Host matchContents>
+												<Menu
+													label={
+														<RNHostView
+															matchContents
+														>
+															<View
+																style={{
+																	flexDirection:
+																		"row",
+																	gap: 3,
+																}}
+															>
+																<Text
+																	style={[
+																		styles.role,
+																		{
+																			color:
+																				member.role ===
+																				"admin"
+																					? accent
+																					: colors.secondary,
+																		},
+																	]}
+																>
+																	{member.role
+																		.charAt(
+																			0,
+																		)
+																		.toUpperCase() +
+																		member.role.slice(
+																			1,
+																		)}
+																</Text>
+
+																{canChangeRole ? (
+																	<MaterialIcons
+																		name="expand-more"
+																		size={
+																			20
+																		}
+																		color={
+																			colors.secondary
+																		}
+																	/>
+																) : null}
+															</View>
+														</RNHostView>
+													}
+												>
+													<Button
+														label="Manager"
+														systemImage={
+															member.role ===
+															"manager"
+																? "checkmark"
+																: "person.2.shield"
+														}
+														onPress={() =>
+															changeRole(
+																member,
+																"manager",
+															)
+														}
+													/>
+
+													<Button
+														label="Member"
+														systemImage={
+															member.role ===
+															"member"
+																? "checkmark"
+																: "person"
+														}
+														onPress={() =>
+															changeRole(
+																member,
+																"member",
+															)
+														}
+													/>
+												</Menu>
+											</Host>
+										) : (
+											<Text
+												style={[
+													styles.role,
+													{
+														color:
+															member.role ===
+															"admin"
+																? accent
+																: colors.secondary,
+													},
+												]}
+											>
+												{member.role
+													.charAt(0)
+													.toUpperCase() +
+													member.role.slice(1)}
+											</Text>
+										)}
+
+										{canRemove ? (
+											<Pressable
+												onPress={() =>
+													removeMember(member)
+												}
+												style={styles.removeButton}
+											>
+												<Ionicons
+													name="person-remove-outline"
+													size={21}
+													color="#ff3b30"
+												/>
+											</Pressable>
+										) : null}
+									</View>
+								</View>
+							);
+						})}
+					</GlassView>
+				</ScrollView>
+			</View>
+		</>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
-  title: { position: "absolute", top: 72, left: 80, right: 80, textAlign: "center", fontSize: 18, fontWeight: "700", zIndex: 10 },
-  content: { paddingHorizontal: 16, paddingTop: 130, paddingBottom: 30 },
-  subtitle: { fontSize: 14, marginBottom: 10 },
-  list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
-  row: { minHeight: 72, paddingHorizontal: 14, paddingVertical: 10, flexDirection: "row", alignItems: "center" },
-  avatar: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", marginRight: 12, overflow: "hidden" },
-  avatarText: { color: "#fff", fontSize: 17, fontWeight: "700" },
-  info: { flex: 1, paddingRight: 8 },
-  name: { fontSize: 15, fontWeight: "600" },
-  username: { fontSize: 12, marginTop: 2 },
-  actions: { flexDirection: "row", alignItems: "center", gap: 6 },
-  roleButton: { minHeight: 36, paddingHorizontal: 7, flexDirection: "row", alignItems: "center" },
-  role: { fontSize: 13, fontWeight: "600" },
-  removeButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+	container: {
+		flex: 1,
+	},
+
+	loading: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+
+	title: {
+		position: "absolute",
+		top: 72,
+		left: 80,
+		right: 80,
+		textAlign: "center",
+		fontSize: 18,
+		fontWeight: "700",
+		zIndex: 10,
+	},
+
+	content: {
+		paddingHorizontal: 16,
+		paddingTop: 60,
+		paddingBottom: 30,
+	},
+
+	memberHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		marginBottom: 10,
+	},
+
+	subtitle: {
+		fontSize: 14,
+	},
+
+	inviteButton: {
+		minHeight: 38,
+		paddingHorizontal: 14,
+		borderRadius: 19,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+		gap: 6,
+	},
+
+	inviteButtonText: {
+		fontSize: 14,
+		fontWeight: "600",
+	},
+
+	list: {
+		borderRadius: 20,
+		borderWidth: StyleSheet.hairlineWidth,
+		overflow: "hidden",
+	},
+
+	row: {
+		minHeight: 72,
+		paddingHorizontal: 14,
+		paddingVertical: 10,
+		flexDirection: "row",
+		alignItems: "center",
+	},
+
+	avatar: {
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+		alignItems: "center",
+		justifyContent: "center",
+		marginRight: 12,
+		overflow: "hidden",
+	},
+
+	avatarText: {
+		color: "#fff",
+		fontSize: 17,
+		fontWeight: "700",
+	},
+
+	info: {
+		flex: 1,
+		paddingRight: 8,
+	},
+
+	name: {
+		fontSize: 15,
+		fontWeight: "600",
+	},
+
+	username: {
+		fontSize: 12,
+		marginTop: 2,
+	},
+
+	actions: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 6,
+	},
+
+	roleButton: {
+		minHeight: 36,
+		paddingHorizontal: 7,
+		flexDirection: "row",
+		alignItems: "center",
+	},
+
+	role: {
+		fontSize: 13,
+		fontWeight: "600",
+	},
+
+	removeButton: {
+		width: 36,
+		height: 36,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 });

@@ -6,13 +6,13 @@ import { GlassContainer, GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
+	Animated,
+	Pressable,
+	RefreshControl,
+	StyleSheet,
+	Text,
+	useColorScheme,
+	View,
 } from "react-native";
 import { supabase } from "../utils/supabase";
 
@@ -24,8 +24,10 @@ export default function Index() {
 	const [circles, setCircles] = useState<any[]>([]);
 	const [refreshing, setRefreshing] = useState(false);
 
-	// Multiple selected circles
 	const [selectedCircles, setSelectedCircles] = useState<string[]>([]);
+	const [selectedFeed, setSelectedFeed] = useState<"all" | "following">(
+		"all",
+	);
 
 	const [selectedCircleName, setSelectedCircleName] = useState("Home");
 
@@ -42,26 +44,66 @@ export default function Index() {
 	async function getPosts(
 		circleIds: string[] = selectedCircles,
 		isRefreshing = false,
+		feed: "all" | "following" = selectedFeed,
 	) {
 		if (isRefreshing) setRefreshing(true);
 
-		const userIds = await getFollowedUserIds();
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
 
-		if (userIds.length === 0) {
+		if (!user) {
 			setPosts([]);
 			setRefreshing(false);
 			return;
 		}
 
+		const followedUserIds = await getFollowedUserIds();
+
 		let query = supabase
 			.from("posts")
 			.select("*")
-			.in("user_id", userIds)
 			.order("created_at", { ascending: false });
 
-		// If circles are selected, show posts from ANY selected circle
 		if (circleIds.length > 0) {
 			query = query.in("circle_id", circleIds);
+		} else if (feed === "following") {
+			if (followedUserIds.length === 0) {
+				setPosts([]);
+				setRefreshing(false);
+				return;
+			}
+
+			query = query.in("user_id", followedUserIds);
+		} else {
+			const { data: memberships, error: membershipError } = await supabase
+				.from("circle_members")
+				.select("circle_id")
+				.eq("user_id", user.id);
+
+			if (membershipError) {
+				console.error(
+					"Error fetching circle memberships:",
+					membershipError,
+				);
+				setPosts([]);
+				setRefreshing(false);
+				return;
+			}
+
+			const memberCircleIds = (memberships ?? []).map(
+				(membership) => membership.circle_id,
+			);
+
+			const filters = [
+				`user_id.in.(${[...new Set(followedUserIds)].join(",")})`,
+			];
+
+			if (memberCircleIds.length > 0) {
+				filters.push(`circle_id.in.(${memberCircleIds.join(",")})`);
+			}
+
+			query = query.or(filters.join(","));
 		}
 
 		const { data, error } = await query;
@@ -135,9 +177,9 @@ export default function Index() {
 			updatedCircles = [...selectedCircles, circleId];
 		}
 
+		setSelectedFeed("all");
 		setSelectedCircles(updatedCircles);
 
-		// Update the button title
 		if (updatedCircles.length === 0) {
 			setSelectedCircleName("Home");
 		} else if (updatedCircles.length === 1) {
@@ -150,13 +192,14 @@ export default function Index() {
 			setSelectedCircleName(`${updatedCircles.length} Circles`);
 		}
 
-		getPosts(updatedCircles);
+		getPosts(updatedCircles, false, "all");
 	}
 
 	function selectAll() {
+		setSelectedFeed("all");
 		setSelectedCircles([]);
 		setSelectedCircleName("Home");
-		getPosts([]);
+		getPosts([], false, "all");
 	}
 
 	useEffect(() => {
@@ -223,12 +266,28 @@ export default function Index() {
 						>
 							<Button
 								systemImage={
+									selectedFeed === "all" &&
 									selectedCircles.length === 0
 										? "checkmark"
 										: "globe"
 								}
 								label="All"
 								onPress={selectAll}
+							/>
+
+							<Button
+								systemImage={
+									selectedFeed === "following"
+										? "checkmark"
+										: "person.2"
+								}
+								label="Following"
+								onPress={() => {
+									setSelectedFeed("following");
+									setSelectedCircles([]);
+									setSelectedCircleName("Following");
+									getPosts([], false, "following");
+								}}
 							/>
 
 							<Menu systemImage="person.2.fill" label="Circles">

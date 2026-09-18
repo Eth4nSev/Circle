@@ -268,6 +268,14 @@ export default function RootLayout() {
 					}}
 				/>
 				<Stack.Screen
+					name="circleInvites"
+					options={{
+						headerShown: false,
+						presentation: "card",
+						gestureEnabled: true,
+					}}
+				/>
+				<Stack.Screen
 					name="circleMembers"
 					options={{
 						headerShown: false,
