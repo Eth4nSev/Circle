@@ -2,23 +2,22 @@ import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import PostContainer from "@/components/post";
 import { Colors } from "@/styles/colors";
-import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
-import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
-import { GlassContainer, GlassView } from "expo-glass-effect";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { GlassView } from "expo-glass-effect";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
+	ActivityIndicator,
+	Alert,
+	Image,
+	Pressable,
+	RefreshControl,
+	ScrollView,
+	StyleSheet,
+	Text,
+	useColorScheme,
+	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
 
@@ -251,18 +250,18 @@ export default function ProfileScreen() {
 					},
 				]}
 			>
-				<View style={styles.settingsButton}>
+				{/* <View style={styles.settingsButton}>
 					<GlassContainer
 						style={styles.glassButtonContainer}
 						spacing={10}
 					>
-						{/* <GlassView isInteractive style={styles.glassButtonMini}>
-              <Ionicons
-                name="chatbubble-outline"
-                size={23}
-                color={colors.text}
-              />
-            </GlassView> */}
+						<GlassView isInteractive style={styles.glassButtonMini}>
+							<Ionicons
+								name="chatbubble-outline"
+								size={23}
+								color={colors.text}
+							/>
+						</GlassView>
 						<GlassView isInteractive style={styles.glassButton}>
 							<Octicons
 								name="bell-slash"
@@ -307,7 +306,7 @@ export default function ProfileScreen() {
 							</Host>
 						</GlassView>
 					</GlassContainer>
-				</View>
+				</View> */}
 
 				{profileImage && (
 					<>

@@ -6,17 +6,17 @@ import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
+	ActivityIndicator,
+	Alert,
+	Image,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Switch,
+	Text,
+	TextInput,
+	useColorScheme,
+	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
 
@@ -426,7 +426,7 @@ export default function EditPost() {
 							]}
 						/>
 
-						<PostSetting
+						{/* <PostSetting
 							icon="share-outline"
 							title="Allow Sharing"
 							description="Let people share your post"
@@ -449,7 +449,7 @@ export default function EditPost() {
 							value={allowReactions}
 							onValueChange={setAllowReactions}
 							colors={colors}
-						/>
+						/> */}
 					</GlassView>
 				</View>
 

@@ -6,18 +6,18 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
+	ActivityIndicator,
+	Alert,
+	Animated,
+	Image,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Switch,
+	Text,
+	TextInput,
+	useColorScheme,
+	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
 
@@ -588,7 +588,7 @@ export default function NewPost() {
 							colors={colors}
 						/>
 
-						<View
+						{/* <View
 							style={[
 								styles.settingSeparator,
 								{ backgroundColor: colors.separator },
@@ -618,7 +618,7 @@ export default function NewPost() {
 							value={allowReactions}
 							onValueChange={setAllowReactions}
 							colors={colors}
-						/>
+						/> */}
 					</GlassView>
 				</View>
 
