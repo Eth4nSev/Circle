@@ -11,12 +11,12 @@ export default function RootLayout() {
 	const theme = useColorScheme() ?? "light";
 	const colors = Colors[theme as "light" | "dark"];
 	const segments = useSegments();
-
 	const [session, setSession] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [profileComplete, setProfileComplete] = useState(false);
 	const [checkingServer, setCheckingServer] = useState(true);
 	const [serverDown, setServerDown] = useState(false);
+	const [checkingProfile, setCheckingProfile] = useState(false);
 
 	useEffect(() => {
 		const checkServer = async () => {
@@ -75,8 +75,11 @@ export default function RootLayout() {
 		if (loading || checkingServer || serverDown) return;
 
 		const checkProfile = async () => {
+			setCheckingProfile(true);
+
 			if (!session) {
 				setProfileComplete(false);
+				setCheckingProfile(false);
 
 				const inAuthGroup =
 					segments[0] === "login" || segments[0] === "signup";
@@ -88,37 +91,55 @@ export default function RootLayout() {
 				return;
 			}
 
-			const { data: profile } = await supabase
+			const { data: profile, error } = await supabase
 				.from("profiles")
-				.select("id")
+				.select("id, updated")
 				.eq("id", session.user.id)
 				.maybeSingle();
 
+			if (error) {
+				console.error("Failed to load profile:", error);
+				setCheckingProfile(false);
+				return;
+			}
+
 			const hasProfile = !!profile;
+
 			setProfileComplete(hasProfile);
 
 			const inAuthGroup =
 				segments[0] === "login" || segments[0] === "signup";
 
 			const inProfileSetup = segments[0] === "profileSetup";
+			const inBetaWelcome = String(segments[0]) === "betaWelcome";
 
 			if (!hasProfile) {
 				if (!inProfileSetup) {
 					router.replace("/profileSetup");
 				}
 
+				setCheckingProfile(false);
 				return;
 			}
 
 			if (inAuthGroup || inProfileSetup) {
 				router.replace("/");
+				setCheckingProfile(false);
+				return;
 			}
+
+			if (profile.updated === true && !inBetaWelcome) {
+				router.replace("/betaWelcome");
+				return;
+			}
+
+			setCheckingProfile(false);
 		};
 
 		checkProfile();
 	}, [session, loading, checkingServer, serverDown, segments]);
 
-	if (checkingServer) {
+	if (checkingServer || checkingProfile) {
 		return null;
 	}
 
@@ -129,8 +150,27 @@ export default function RootLayout() {
 	return (
 		<AccentProvider>
 			<Stack
-				screenOptions={{ headerShown: false, headerTransparent: true }}
+				screenOptions={{
+					headerShown: false,
+					headerTransparent: true,
+				}}
 			>
+				<Stack.Screen
+					name="betaWelcome"
+					options={{
+						presentation: "formSheet",
+						headerShown: false,
+						gestureEnabled: false,
+						sheetGrabberVisible: false,
+						sheetAllowedDetents: [1],
+						contentStyle: {
+							backgroundColor: isLiquidGlassAvailable()
+								? "transparent"
+								: colors.background,
+						},
+					}}
+				/>
+
 				<Stack.Screen
 					name="emojiReact"
 					options={{
@@ -180,6 +220,7 @@ export default function RootLayout() {
 						},
 					}}
 				/>
+
 				<Stack.Screen
 					name="create"
 					options={{
@@ -193,6 +234,7 @@ export default function RootLayout() {
 						},
 					}}
 				/>
+
 				<Stack.Screen
 					name="editPost"
 					options={{
@@ -251,6 +293,7 @@ export default function RootLayout() {
 						},
 					}}
 				/>
+
 				<Stack.Screen
 					name="invites"
 					options={{
@@ -267,6 +310,7 @@ export default function RootLayout() {
 						gestureEnabled: true,
 					}}
 				/>
+
 				<Stack.Screen
 					name="circleInvites"
 					options={{
@@ -275,6 +319,7 @@ export default function RootLayout() {
 						gestureEnabled: true,
 					}}
 				/>
+
 				<Stack.Screen
 					name="circleMembers"
 					options={{
@@ -283,6 +328,7 @@ export default function RootLayout() {
 						gestureEnabled: true,
 					}}
 				/>
+
 				<Stack.Screen
 					name="circleSettings"
 					options={{
