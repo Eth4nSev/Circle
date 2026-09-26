@@ -1,358 +1,347 @@
 import { Colors } from "@/styles/colors";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { router, Stack, useSegments } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useColorScheme } from "react-native";
 import { AccentProvider } from "./context/accent";
 import OutageScreen from "./outage";
 import { supabase } from "./utils/supabase";
 
 export default function RootLayout() {
-	const theme = useColorScheme() ?? "light";
-	const colors = Colors[theme as "light" | "dark"];
-	const segments = useSegments();
-	const [session, setSession] = useState<any>(null);
-	const [loading, setLoading] = useState(true);
-	const [profileComplete, setProfileComplete] = useState(false);
-	const [checkingServer, setCheckingServer] = useState(true);
-	const [serverDown, setServerDown] = useState(false);
-	const [checkingProfile, setCheckingProfile] = useState(false);
+  const theme = useColorScheme() ?? "light";
+  const colors = Colors[theme as "light" | "dark"];
+  const segments = useSegments();
 
-	useEffect(() => {
-		const checkServer = async () => {
-			try {
-				const { error } = await supabase
-					.from("profiles")
-					.select("id")
-					.limit(1);
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [profileComplete, setProfileComplete] = useState(false);
+  const [checkingServer, setCheckingServer] = useState(true);
+  const [serverDown, setServerDown] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(false);
 
-				if (
-					error?.message ===
-					"Service for this project is restricted due to the following violations: exceed_cached_egress_quota. The project owner must upgrade their plan or remove spend caps to restore service."
-				) {
-					setServerDown(true);
-				} else {
-					setServerDown(false);
-				}
-			} catch (error: any) {
-				if (error?.status === 402) {
-					setServerDown(true);
-				} else {
-					setServerDown(false);
-				}
-			} finally {
-				setCheckingServer(false);
-			}
-		};
+  const betaOpened = useRef(false);
 
-		checkServer();
-	}, []);
+  useEffect(() => {
+    const checkServer = async () => {
+      try {
+        const { error } = await supabase.from("profiles").select("id").limit(1);
 
-	useEffect(() => {
-		if (checkingServer || serverDown) return;
+        if (
+          error?.message ===
+          "Service for this project is restricted due to the following violations: exceed_cached_egress_quota. The project owner must upgrade their plan or remove spend caps to restore service."
+        ) {
+          setServerDown(true);
+        } else {
+          setServerDown(false);
+        }
+      } catch (error: any) {
+        if (error?.status === 402) {
+          setServerDown(true);
+        } else {
+          setServerDown(false);
+        }
+      } finally {
+        setCheckingServer(false);
+      }
+    };
 
-		const getSession = async () => {
-			const { data } = await supabase.auth.getSession();
+    checkServer();
+  }, []);
 
-			setSession(data.session);
-			setLoading(false);
-		};
+  useEffect(() => {
+    if (checkingServer || serverDown) return;
 
-		getSession();
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
 
-		const {
-			data: { subscription },
-		} = supabase.auth.onAuthStateChange((_event, session) => {
-			setSession(session);
-		});
+      setSession(data.session);
+      setLoading(false);
+    };
 
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, [checkingServer, serverDown]);
+    getSession();
 
-	useEffect(() => {
-		if (loading || checkingServer || serverDown) return;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
 
-		const checkProfile = async () => {
-			setCheckingProfile(true);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [checkingServer, serverDown]);
 
-			if (!session) {
-				setProfileComplete(false);
-				setCheckingProfile(false);
+  useEffect(() => {
+    if (loading || checkingServer || serverDown) return;
 
-				const inAuthGroup =
-					segments[0] === "login" || segments[0] === "signup";
+    const checkProfile = async () => {
+      setCheckingProfile(true);
 
-				if (!inAuthGroup) {
-					router.replace("/login");
-				}
+      if (!session) {
+        setProfileComplete(false);
+        betaOpened.current = false;
+        setCheckingProfile(false);
 
-				return;
-			}
+        const inAuthGroup = segments[0] === "login" || segments[0] === "signup";
 
-			const { data: profile, error } = await supabase
-				.from("profiles")
-				.select("id, updated")
-				.eq("id", session.user.id)
-				.maybeSingle();
+        if (!inAuthGroup) {
+          router.replace("/login");
+        }
 
-			if (error) {
-				console.error("Failed to load profile:", error);
-				setCheckingProfile(false);
-				return;
-			}
+        return;
+      }
 
-			const hasProfile = !!profile;
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("id, updated")
+        .eq("id", session.user.id)
+        .maybeSingle();
 
-			setProfileComplete(hasProfile);
+      if (error) {
+        console.error("Failed to load profile:", error);
+        setCheckingProfile(false);
+        return;
+      }
 
-			const inAuthGroup =
-				segments[0] === "login" || segments[0] === "signup";
+      const hasProfile = !!profile;
 
-			const inProfileSetup = segments[0] === "profileSetup";
-			const inBetaWelcome = String(segments[0]) === "betaWelcome";
+      setProfileComplete(hasProfile);
 
-			if (!hasProfile) {
-				if (!inProfileSetup) {
-					router.replace("/profileSetup");
-				}
+      const inAuthGroup = segments[0] === "login" || segments[0] === "signup";
 
-				setCheckingProfile(false);
-				return;
-			}
+      const inProfileSetup = segments[0] === "profileSetup";
+      const inBetaWelcome = String(segments[0]) === "betaWelcome";
 
-			if (inAuthGroup || inProfileSetup) {
-				router.replace("/");
-				setCheckingProfile(false);
-				return;
-			}
+      if (!hasProfile) {
+        betaOpened.current = false;
 
-			if (profile.updated === true && !inBetaWelcome) {
-				router.replace("/betaWelcome");
-				return;
-			}
+        if (!inProfileSetup) {
+          router.replace("/profileSetup");
+        }
 
-			setCheckingProfile(false);
-		};
+        setCheckingProfile(false);
+        return;
+      }
 
-		checkProfile();
-	}, [session, loading, checkingServer, serverDown, segments]);
+      if (inAuthGroup || inProfileSetup) {
+        router.replace("/");
+        setCheckingProfile(false);
+        return;
+      }
 
-	if (checkingServer || checkingProfile) {
-		return null;
-	}
+      if (profile.updated === true && !betaOpened.current && !inBetaWelcome) {
+        betaOpened.current = true;
+        setCheckingProfile(false);
 
-	if (serverDown) {
-		return <OutageScreen />;
-	}
+        router.push("/betaWelcome");
 
-	return (
-		<AccentProvider>
-			<Stack
-				screenOptions={{
-					headerShown: false,
-					headerTransparent: true,
-				}}
-			>
-				<Stack.Screen
-					name="betaWelcome"
-					options={{
-						presentation: "formSheet",
-						headerShown: false,
-						gestureEnabled: false,
-						sheetGrabberVisible: false,
-						sheetAllowedDetents: [1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+        return;
+      }
 
-				<Stack.Screen
-					name="emojiReact"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: true,
-						sheetAllowedDetents: [0.15, 1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+      setCheckingProfile(false);
+    };
 
-				<Stack.Screen
-					name="editProfile"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: false,
-						gestureEnabled: true,
-						sheetAllowedDetents: [0.61],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+    checkProfile();
+  }, [session, loading, checkingServer, serverDown]);
 
-				<Stack.Screen
-					name="login"
-					options={{
-						animation: "slide_from_left",
-					}}
-				/>
+  if (checkingServer) {
+    return null;
+  }
 
-				<Stack.Screen
-					name="newPost"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: false,
-						sheetAllowedDetents: [1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+  if (serverDown) {
+    return <OutageScreen />;
+  }
 
-				<Stack.Screen
-					name="create"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: false,
-						sheetAllowedDetents: [1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+  return (
+    <AccentProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          headerTransparent: true,
+        }}
+      >
+        <Stack.Screen
+          name="emojiReact"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: true,
+            sheetAllowedDetents: [0.15, 1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="editPost"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: false,
-						sheetAllowedDetents: [1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+        <Stack.Screen
+          name="editProfile"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: false,
+            gestureEnabled: true,
+            sheetAllowedDetents: [0.61],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="subscriptions"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: false,
-						gestureEnabled: true,
-						sheetAllowedDetents: [1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+        <Stack.Screen
+          name="login"
+          options={{
+            animation: "slide_from_left",
+          }}
+        />
 
-				<Stack.Screen
-					name="followers"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: true,
-						gestureEnabled: true,
-						sheetAllowedDetents: [0.5, 1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+        <Stack.Screen
+          name="newPost"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: false,
+            sheetAllowedDetents: [1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="following"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: true,
-						gestureEnabled: true,
-						sheetAllowedDetents: [0.5, 1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
+        <Stack.Screen
+          name="create"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: false,
+            sheetAllowedDetents: [1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="invites"
-					options={{
-						presentation: "card",
-						gestureEnabled: true,
-					}}
-				/>
+        <Stack.Screen
+          name="editPost"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: false,
+            sheetAllowedDetents: [1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="circleChat"
-					options={{
-						headerShown: false,
-						presentation: "card",
-						gestureEnabled: true,
-					}}
-				/>
+        <Stack.Screen
+          name="subscriptions"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: false,
+            gestureEnabled: true,
+            sheetAllowedDetents: [1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="circleInvites"
-					options={{
-						headerShown: false,
-						presentation: "card",
-						gestureEnabled: true,
-					}}
-				/>
+        <Stack.Screen
+          name="followers"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: true,
+            gestureEnabled: true,
+            sheetAllowedDetents: [0.5, 1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="circleMembers"
-					options={{
-						headerShown: false,
-						presentation: "card",
-						gestureEnabled: true,
-					}}
-				/>
+        <Stack.Screen
+          name="following"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: true,
+            gestureEnabled: true,
+            sheetAllowedDetents: [0.5, 1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
 
-				<Stack.Screen
-					name="circleSettings"
-					options={{
-						headerShown: false,
-						presentation: "card",
-						gestureEnabled: true,
-					}}
-				/>
+        <Stack.Screen
+          name="invites"
+          options={{
+            presentation: "card",
+            gestureEnabled: true,
+          }}
+        />
 
-				<Stack.Screen
-					name="comments"
-					options={{
-						presentation: "formSheet",
-						sheetGrabberVisible: true,
-						gestureEnabled: true,
-						sheetAllowedDetents: [1],
-						contentStyle: {
-							backgroundColor: isLiquidGlassAvailable()
-								? "transparent"
-								: colors.background,
-						},
-					}}
-				/>
-			</Stack>
-		</AccentProvider>
-	);
+        <Stack.Screen
+          name="circleChat"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            gestureEnabled: true,
+          }}
+        />
+
+        <Stack.Screen
+          name="circleInvites"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            gestureEnabled: true,
+          }}
+        />
+
+        <Stack.Screen
+          name="circleMembers"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            gestureEnabled: true,
+          }}
+        />
+
+        <Stack.Screen
+          name="circleSettings"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            gestureEnabled: true,
+          }}
+        />
+
+        <Stack.Screen
+          name="comments"
+          options={{
+            presentation: "formSheet",
+            sheetGrabberVisible: true,
+            gestureEnabled: true,
+            sheetAllowedDetents: [1],
+            contentStyle: {
+              backgroundColor: isLiquidGlassAvailable()
+                ? "transparent"
+                : colors.background,
+            },
+          }}
+        />
+      </Stack>
+    </AccentProvider>
+  );
 }
