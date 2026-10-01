@@ -1,11 +1,17 @@
 import { Colors } from "@/styles/colors";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { router, Stack, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef, useState } from "react";
 import { useColorScheme } from "react-native";
 import { AccentProvider } from "./context/accent";
 import OutageScreen from "./outage";
 import { supabase } from "./utils/supabase";
+
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
 
 export default function RootLayout() {
   const theme = useColorScheme() ?? "light";
