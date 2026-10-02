@@ -45,7 +45,6 @@ export default function RootLayout() {
   const [checkingProfile, setCheckingProfile] = useState(false);
   const [updateRequired, setUpdateRequired] = useState(false);
   const [requiredVersion, setRequiredVersion] = useState("0.0.0");
-  const [updateUrl, setUpdateUrl] = useState<string | null>(null);
 
   const betaOpened = useRef(false);
 
@@ -54,7 +53,7 @@ export default function RootLayout() {
       try {
         const { data, error } = await supabase
           .from("app_config")
-          .select("minimum_version, update_url")
+          .select("minimum_version")
           .eq("id", 1)
           .maybeSingle();
 
@@ -81,7 +80,6 @@ export default function RootLayout() {
           compareVersions(currentVersion, data.minimum_version) < 0
         ) {
           setRequiredVersion(data.minimum_version);
-          setUpdateUrl(data.update_url ?? null);
           setUpdateRequired(true);
         }
       } catch (error: any) {
@@ -207,7 +205,6 @@ export default function RootLayout() {
       <UpdateRequiredScreen
         currentVersion={currentVersion}
         requiredVersion={requiredVersion}
-        updateUrl={updateUrl}
       />
     );
   }
