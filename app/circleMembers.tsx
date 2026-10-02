@@ -1,3 +1,4 @@
+import SupabaseImage from "@/components/SupabaseImage";
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import { Colors } from "@/styles/colors";
@@ -330,7 +331,7 @@ export default function CircleMembers() {
 									]}
 								>
 									{member.avatar_url ? (
-										<Image
+										<SupabaseImage
 											source={{
 												uri: member.avatar_url,
 											}}
