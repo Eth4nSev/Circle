@@ -1,4 +1,5 @@
 import { supabase } from "@/app/utils/supabase";
+import SupabaseImage from "@/components/SupabaseImage";
 import { Colors } from "@/styles/colors";
 import { Button, ContextMenu, Host, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -70,7 +71,8 @@ export default function Comments() {
 			.from("comments")
 			.select("id, post_id, user_id, content, created_at")
 			.eq("post_id", postId)
-			.order("created_at", { ascending: true });
+			.order("created_at", { ascending: true })
+			.limit(50);
 
 		if (error) {
 			console.error("Error fetching comments:", error);
@@ -78,24 +80,33 @@ export default function Comments() {
 			return;
 		}
 
-		const commentsWithProfiles = await Promise.all(
-			(data ?? []).map(async (item) => {
-				const { data: profile } = await supabase
-					.from("profiles")
-					.select("username, display_name, avatar_url")
-					.eq("id", item.user_id)
-					.single();
+		const userIds = [...new Set((data ?? []).map((item) => item.user_id))];
 
-				return {
-					...item,
-					profiles: profile ?? null,
-				};
-			}),
+		const { data: profiles, error: profilesError } = userIds.length
+			? await supabase
+					.from("profiles")
+					.select("id, username, display_name, avatar_url")
+					.in("id", userIds)
+			: { data: [], error: null };
+
+		if (profilesError) {
+			console.error("Error fetching comment profiles:", profilesError);
+		}
+
+		const profileMap = new Map(
+			(profiles ?? []).map((profile) => [profile.id, profile]),
 		);
 
-		setComments(commentsWithProfiles as Comment[]);
+		setComments(
+			(data ?? []).map((item) => ({
+				...item,
+				profiles: profileMap.get(item.user_id) ?? null,
+			})) as Comment[],
+		);
+
 		setLoading(false);
 	}
+
 
 	async function addComment() {
 		const content = comment.trim();
@@ -225,8 +236,8 @@ export default function Comments() {
 							]}
 						>
 							{item.profiles?.avatar_url ? (
-								<Image
-									source={{ uri: item.profiles.avatar_url }}
+								<SupabaseImage
+									uri={item.profiles.avatar_url}
 									style={styles.avatarImage}
 								/>
 							) : (
