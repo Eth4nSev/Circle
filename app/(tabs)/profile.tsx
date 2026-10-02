@@ -1,4 +1,5 @@
 import { supabase } from "@/app/utils/supabase";
+import { getCurrentUser } from "../utils/auth";
 import PostContainer from "@/components/post";
 import SupabaseImage from "@/components/SupabaseImage";
 import { fetchPostPage, type FeedPost } from "../utils/postFeed";
