@@ -14,7 +14,7 @@
 				"NSFaceIDUsageDescription": "This app requires Face ID to secure your private dashboard.",
 				"ITSAppUsesNonExemptEncryption": false
 			},
-			"bundleIdentifier": "com.eth4nsev.Circle"
+			"bundleIdentifier": "com.coolman0771.Circle"
 		},
 		"android": {
 			"adaptiveIcon": {
