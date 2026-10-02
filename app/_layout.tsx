@@ -41,7 +41,7 @@ export default function RootLayout() {
           setServerDown(false);
         }
       } catch (error: any) {
-        if (error?.status === 402) {
+        if (error?.status === 402 || error?.status === 540) {
           setServerDown(true);
         } else {
           setServerDown(false);
