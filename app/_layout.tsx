@@ -183,7 +183,7 @@ export default function RootLayout() {
         betaOpened.current = true;
         setCheckingProfile(false);
 
-        router.push("/betaWelcome");
+        router.replace("/betaWelcome");
 
         return;
       }
