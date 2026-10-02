@@ -1,5 +1,4 @@
-import * as ImageManipulator from "expo-image-manipulator";
-import { SaveFormat } from "expo-image-manipulator";
+import { Image } from "react-native";
 
 type OptimizeImageOptions = {
   uri: string;
@@ -7,27 +6,58 @@ type OptimizeImageOptions = {
   quality?: number;
 };
 
+async function getImageDimensions(uri: string) {
+  return new Promise<{ width: number; height: number }>((resolve) => {
+    Image.getSize(
+      uri,
+      (width, height) => resolve({ width, height }),
+      () => resolve({ width: 1, height: 1 }),
+    );
+  });
+}
+
 export async function optimizeImage({
   uri,
   maxWidth = 1080,
   quality = 0.78,
 }: OptimizeImageOptions) {
-  const context = ImageManipulator.manipulate(uri);
-  const image = context.resize({ width: maxWidth, height: null });
-  const rendered = await image.renderAsync();
+  try {
+    // ImageManipulator is a native module. Older development builds may not
+    // contain it yet, so load it lazily and fall back safely when unavailable.
+    const ImageManipulator = require("expo-image-manipulator");
 
-  const result = await rendered.saveAsync({
-    format: SaveFormat.JPEG,
-    compress: quality,
-  });
+    const context = ImageManipulator.manipulate(uri);
+    const image = context.resize({ width: maxWidth, height: null });
+    const rendered = await image.renderAsync();
 
-  return {
-    uri: result.uri,
-    width: result.width,
-    height: result.height,
-    contentType: "image/jpeg",
-    extension: "jpg",
-  };
+    const result = await rendered.saveAsync({
+      format: ImageManipulator.SaveFormat.JPEG,
+      compress: quality,
+    });
+
+    return {
+      uri: result.uri,
+      width: result.width,
+      height: result.height,
+      contentType: "image/jpeg",
+      extension: "jpg",
+    };
+  } catch (error) {
+    console.warn(
+      "ImageManipulator is unavailable in this build; using the ImagePicker-compressed image instead.",
+      error,
+    );
+
+    const dimensions = await getImageDimensions(uri);
+
+    return {
+      uri,
+      width: dimensions.width,
+      height: dimensions.height,
+      contentType: "image/jpeg",
+      extension: "jpg",
+    };
+  }
 }
 
 export async function fileUriToArrayBuffer(uri: string) {
