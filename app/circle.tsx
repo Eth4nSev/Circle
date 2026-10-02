@@ -52,6 +52,7 @@ export default function CircleScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState("");
 
   async function loadCircle() {
     if (!id) return;
@@ -63,6 +64,8 @@ export default function CircleScreen() {
         router.replace("/login");
         return;
       }
+
+      setCurrentUserId(user.id);
 
       const { data: circleData, error: circleError } = await supabase
         .from("circles")
@@ -458,11 +461,7 @@ export default function CircleScreen() {
               ]}
             >
               <MaterialIcons
-                name={
-                  circle.chat_enabled
-                    ? "chat-bubble-outline"
-                    : "chat-bubble-outline"
-                }
+                name="chat-bubble-outline"
                 size={21}
                 color={colors.text}
               />
@@ -546,7 +545,7 @@ export default function CircleScreen() {
                   }}
                   likeCount={post.like_count}
                   isLiked={post.is_liked}
-                  currentUserId={user.id}
+                  currentUserId={currentUserId}
                 />
               ))
             )}
