@@ -174,7 +174,7 @@ export default function DM() {
 			<Pressable style={styles.headerLeft}>
 				<View style={styles.avatar}>
 					{profile?.avatar_url ? (
-						<Image
+						<SupabaseImage
 							source={{ uri: profile.avatar_url }}
 							style={[
 								styles.avatarImage,
