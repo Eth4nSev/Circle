@@ -1,5 +1,6 @@
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
+import SupabaseImage from "@/components/SupabaseImage";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
@@ -36,11 +37,11 @@ export default function CircleChat() {
 
     const [{ data: circleData }, { data: messageData }] = await Promise.all([
       supabase.from("circles").select("id, name, color, chat_enabled").eq("id", circleId).single(),
-      supabase.from("circle_messages").select("*").eq("circle_id", circleId).order("created_at", { ascending: true }),
+      supabase.from("circle_messages").select("id, circle_id, sender_id, content, created_at").eq("circle_id", circleId).order("created_at", { ascending: false }).limit(50),
     ]);
 
     setCircle(circleData ?? null);
-    const loaded = messageData ?? [];
+    const loaded = (messageData ?? []).reverse();
     setMessages(loaded);
 
     const senderIds = [...new Set(loaded.map((item) => item.sender_id))];
