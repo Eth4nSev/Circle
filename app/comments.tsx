@@ -1,5 +1,6 @@
 import { supabase } from "@/app/utils/supabase";
 import SupabaseImage from "@/components/SupabaseImage";
+import { getCurrentUser } from "./utils/auth";
 import { Colors } from "@/styles/colors";
 import { Button, ContextMenu, Host, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -57,10 +58,7 @@ export default function Comments() {
 	}, [postId]);
 
 	async function getUser() {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
+		const user = await getCurrentUser();
 		setUserId(user?.id ?? null);
 	}
 
