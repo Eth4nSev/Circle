@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import { Colors } from "@/styles/colors";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { router, Stack, useSegments } from "expo-router";
@@ -6,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useColorScheme } from "react-native";
 import { AccentProvider } from "./context/accent";
 import OutageScreen from "./outage";
+import UpdateRequiredScreen from "./updateRequired";
 import { supabase } from "./utils/supabase";
 
 SplashScreen.setOptions({
@@ -13,10 +15,27 @@ SplashScreen.setOptions({
   fade: true,
 });
 
+const compareVersions = (a: string, b: string) => {
+  const aParts = a.split(".").map(Number);
+  const bParts = b.split(".").map(Number);
+  const length = Math.max(aParts.length, bParts.length);
+
+  for (let i = 0; i < length; i++) {
+    const aPart = aParts[i] ?? 0;
+    const bPart = bParts[i] ?? 0;
+
+    if (aPart > bPart) return 1;
+    if (aPart < bPart) return -1;
+  }
+
+  return 0;
+};
+
 export default function RootLayout() {
   const theme = useColorScheme() ?? "light";
   const colors = Colors[theme as "light" | "dark"];
   const segments = useSegments();
+  const currentVersion = Constants.expoConfig?.version ?? "0.0.0";
 
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -24,38 +43,63 @@ export default function RootLayout() {
   const [checkingServer, setCheckingServer] = useState(true);
   const [serverDown, setServerDown] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(false);
+  const [updateRequired, setUpdateRequired] = useState(false);
+  const [requiredVersion, setRequiredVersion] = useState("0.0.0");
+  const [updateUrl, setUpdateUrl] = useState<string | null>(null);
 
   const betaOpened = useRef(false);
 
   useEffect(() => {
-    const checkServer = async () => {
+    const checkAppConfig = async () => {
       try {
-        const { error } = await supabase.from("profiles").select("id").limit(1);
+        const { data, error } = await supabase
+          .from("app_config")
+          .select("minimum_version, update_url")
+          .eq("id", 1)
+          .maybeSingle();
 
         if (
           error?.message ===
           "Service for this project is restricted due to the following violations: exceed_cached_egress_quota. The project owner must upgrade their plan or remove spend caps to restore service."
         ) {
           setServerDown(true);
-        } else {
-          setServerDown(false);
+          return;
+        }
+
+        if (error?.status === 402 || error?.status === 540) {
+          setServerDown(true);
+          return;
+        }
+
+        if (error) {
+          console.error("Failed to load app config:", error);
+          return;
+        }
+
+        if (
+          data?.minimum_version &&
+          compareVersions(currentVersion, data.minimum_version) < 0
+        ) {
+          setRequiredVersion(data.minimum_version);
+          setUpdateUrl(data.update_url ?? null);
+          setUpdateRequired(true);
         }
       } catch (error: any) {
         if (error?.status === 402 || error?.status === 540) {
           setServerDown(true);
         } else {
-          setServerDown(false);
+          console.error("Failed to check app version:", error);
         }
       } finally {
         setCheckingServer(false);
       }
     };
 
-    checkServer();
-  }, []);
+    checkAppConfig();
+  }, [currentVersion]);
 
   useEffect(() => {
-    if (checkingServer || serverDown) return;
+    if (checkingServer || serverDown || updateRequired) return;
 
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -75,10 +119,10 @@ export default function RootLayout() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [checkingServer, serverDown]);
+  }, [checkingServer, serverDown, updateRequired]);
 
   useEffect(() => {
-    if (loading || checkingServer || serverDown) return;
+    if (loading || checkingServer || serverDown || updateRequired) return;
 
     const checkProfile = async () => {
       setCheckingProfile(true);
@@ -148,7 +192,7 @@ export default function RootLayout() {
     };
 
     checkProfile();
-  }, [session, loading, checkingServer, serverDown]);
+  }, [session, loading, checkingServer, serverDown, updateRequired]);
 
   if (checkingServer) {
     return null;
@@ -156,6 +200,16 @@ export default function RootLayout() {
 
   if (serverDown) {
     return <OutageScreen />;
+  }
+
+  if (updateRequired) {
+    return (
+      <UpdateRequiredScreen
+        currentVersion={currentVersion}
+        requiredVersion={requiredVersion}
+        updateUrl={updateUrl}
+      />
+    );
   }
 
   return (
