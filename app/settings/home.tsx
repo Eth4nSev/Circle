@@ -67,13 +67,13 @@ export default function Index() {
 				<SettingsLink href="/settings/appearance" title="Appearance" />
 			</SettingsContainer>
 
-			<SettingsContainer>
-				{/* <SettingsLink href="" title="Notifications" /> */}
-				{/* <SettingsLink
+			{/* <SettingsContainer>
+				<SettingsLink href="" title="Notifications" />
+				<SettingsLink
 					href="/settings/circlesSettings"
 					title="Circles"
-				/> */}
-			</SettingsContainer>
+				/>
+			</SettingsContainer> */}
 
 			{/* <SettingsContainer>
 				<SettingsLink
