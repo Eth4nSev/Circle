@@ -1,4 +1,5 @@
 import { supabase } from "@/app/utils/supabase";
+import SupabaseImage from "@/components/SupabaseImage";
 import { Colors } from "@/styles/colors";
 import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -49,7 +50,8 @@ function formatRelativeTime(createdAt: string) {
 }
 
 type Profile = {
-  username: string;
+  username: string | null;
+  display_name?: string | null;
   avatar_url: string | null;
 };
 
@@ -65,6 +67,11 @@ type Props = {
   time: string;
   href: string;
   caption?: string | null;
+  profile?: Profile | null;
+  postSettings?: PostSettings;
+  likeCount?: number;
+  isLiked?: boolean;
+  currentUserId: string;
   onDeleted?: () => void;
 };
 
@@ -79,104 +86,21 @@ export default function PostContainer({
   const theme = useColorScheme() ?? "light";
   const colors = Colors[theme as "light" | "dark"];
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(initialProfile);
   const [postImageAspectRatio, setPostImageAspectRatio] = useState(1);
-  const [postSettings, setPostSettings] = useState<PostSettings>({
-    allow_comments: true,
-    allow_sharing: true,
-    allow_reactions: true,
-  });
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  const [postSettings, setPostSettings] = useState<PostSettings>(initialPostSettings);
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [likeLoading, setLikeLoading] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [isOwnPost, setIsOwnPost] = useState(false);
 
-  const loadPostSettings = async () => {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("allow_comments, allow_sharing, allow_reactions")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      console.error("Error loading post settings:", error);
-      return;
-    }
-
-    if (data) {
-      setPostSettings({
-        allow_comments: data.allow_comments ?? true,
-        allow_sharing: data.allow_sharing ?? true,
-        allow_reactions: data.allow_reactions ?? true,
-      });
-    }
-  };
-
-  const loadLikes = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
-
-    const { count, error: countError } = await supabase
-      .from("post_likes")
-      .select("*", { count: "exact", head: true })
-      .eq("post_id", id);
-
-    if (countError) {
-      console.error("Error loading like count:", countError);
-    } else {
-      setLikeCount(count ?? 0);
-    }
-
-    const { data, error } = await supabase
-      .from("post_likes")
-      .select("id")
-      .eq("post_id", id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error loading like status:", error);
-    } else {
-      setIsLiked(!!data);
-    }
-  };
+  const isOwnPost = currentUserId === userId;
 
   useEffect(() => {
-    async function getProfile() {
-      setLoadingProfile(true);
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username, avatar_url")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error loading post profile:", error);
-      } else {
-        setProfile(data);
-      }
-
-      setLoadingProfile(false);
-    }
-
-    async function checkPostOwner() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      setIsOwnPost(user?.id === userId);
-    }
-
-    getProfile();
-    checkPostOwner();
-    loadPostSettings();
-    loadLikes();
-  }, [userId, id]);
+    setProfile(initialProfile);
+    setPostSettings(initialPostSettings);
+    setIsLiked(initialIsLiked);
+    setLikeCount(initialLikeCount);
+  }, [initialProfile, initialPostSettings, initialIsLiked, initialLikeCount]);
 
   const likePost = async () => {
     if (likeLoading) return;
@@ -185,45 +109,32 @@ export default function PostContainer({
 
     const wasLiked = isLiked;
     setIsLiked(!wasLiked);
-    setLikeCount((count) => Math.max(0, count + (wasLiked ? -1 : 1)));
-    Haptics.selectionAsync().catch((error) => {
-      console.error("Error triggering like haptic:", error);
-    });
+    setLikeCount((count) =>
+      Math.max(0, count + (wasLiked ? -1 : 1)),
+    );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    Haptics.selectionAsync().catch(() => {});
 
-    if (!user) {
+    const result = wasLiked
+      ? await supabase
+          .from("post_likes")
+          .delete()
+          .eq("post_id", id)
+          .eq("user_id", currentUserId)
+      : await supabase.from("post_likes").insert({
+          post_id: id,
+          user_id: currentUserId,
+        });
+
+    if (result.error) {
+      console.error(
+        wasLiked ? "Error unliking post:" : "Error liking post:",
+        result.error,
+      );
       setIsLiked(wasLiked);
-      setLikeCount((count) => Math.max(0, count + (wasLiked ? 1 : -1)));
-      setLikeLoading(false);
-      return;
-    }
-
-    if (isLiked) {
-      const { error } = await supabase
-        .from("post_likes")
-        .delete()
-        .eq("post_id", id)
-        .eq("user_id", user.id);
-
-      if (error) {
-        console.error("Error unliking post:", error);
-        setIsLiked(wasLiked);
-        setLikeCount((count) => count + 1);
-      }
-    } else {
-      const { error } = await supabase.from("post_likes").insert({
-        post_id: id,
-        user_id: user.id,
-      });
-
-      if (error) {
-        console.error("Error liking post:", error);
-        setIsLiked(wasLiked);
-        setLikeCount((count) => Math.max(0, count - 1));
-      }
+      setLikeCount((count) =>
+        Math.max(0, count + (wasLiked ? 1 : -1)),
+      );
     }
 
     setLikeLoading(false);
@@ -351,11 +262,7 @@ export default function PostContainer({
   };
 
   const submitReport = async (reason: string, message: string | null) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    if (!currentUserId) {
       Alert.alert(
         "Couldn't Report Post",
         "You must be signed in to report a post.",
@@ -364,7 +271,7 @@ export default function PostContainer({
     }
 
     const { error } = await supabase.from("reports").insert({
-      reporter_id: user.id,
+      reporter_id: currentUserId,
       post_id: id,
       reported_user_id: userId,
       reason,
@@ -375,7 +282,10 @@ export default function PostContainer({
       console.error("Error reporting post:", error);
 
       if (error.code === "23505") {
-        Alert.alert("Already Reported", "You have already reported this post.");
+        Alert.alert(
+          "Already Reported",
+          "You have already reported this post.",
+        );
         return;
       }
 
@@ -387,9 +297,9 @@ export default function PostContainer({
       return;
     }
 
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-      () => {},
-    );
+    Haptics.notificationAsync(
+      Haptics.NotificationFeedbackType.Success,
+    ).catch(() => {});
 
     Alert.alert("Report Submitted", "Thanks for helping keep Circle safe.");
   };
@@ -399,28 +309,22 @@ export default function PostContainer({
       {isLiquidGlassAvailable() ? (
         <GlassView style={styles.postContainer}>
           <Pressable onPress={openProfile} style={styles.postAccount}>
-            {loadingProfile ? (
-              <View style={styles.pfpPlaceholder}>
-                <ActivityIndicator size="small" color={colors.secondary} />
-              </View>
+            {profile?.avatar_url ? (
+              <SupabaseImage
+                uri={profile.avatar_url}
+                style={styles.pfp}
+                contentFit="cover"
+              />
             ) : (
               <Image
-                source={
-                  profile?.avatar_url
-                    ? { uri: profile.avatar_url }
-                    : require("@/assets/images/icon.png")
-                }
+                source={require("@/assets/images/icon.png")}
                 style={styles.pfp}
               />
             )}
 
-            {loadingProfile ? (
-              <ActivityIndicator size="small" color={colors.secondary} />
-            ) : (
-              <Text style={[styles.postAccountName, { color: colors.text }]}>
-                @{profile?.username ?? "unknown"}
-              </Text>
-            )}
+            <Text style={[styles.postAccountName, { color: colors.text }]}>
+              @{profile?.username ?? "unknown"}
+            </Text>
 
             <Text style={{ color: colors.secondary }}>{"\u2022"}</Text>
 
@@ -438,15 +342,24 @@ export default function PostContainer({
               },
             ]}
             resizeMode="contain"
+            onLoad={(ev          <SupabaseImage
+            source={href}
+            style={[
+              styles.postImage,
+              {
+                aspectRatio: postImageAspectRatio,
+              },
+            ]}
+            contentFit="contain"
+            cachePolicy="disk"
             onLoad={(event) => {
-              const { width, height } = event.nativeEvent.source;
+              const { width, height } = event.source;
 
               if (width && height) {
                 setPostImageAspectRatio(width / height);
               }
             }}
           />
-
           <View style={styles.postOptions}>
             <Pressable onPress={likePost} disabled={likeLoading}>
               <View style={styles.likeContainer}>
