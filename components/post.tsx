@@ -5,6 +5,7 @@ import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
+import { sendNotification } from "@/app/utils/notifications";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -144,6 +145,15 @@ export default function PostContainer({
       setLikeCount((count) =>
         Math.max(0, count + (wasLiked ? 1 : -1)),
       );
+    } else if (!wasLiked && userId !== currentUserId) {
+      await sendNotification({
+        recipientId: userId,
+        type: "like",
+        data: {
+          postId: id,
+          actorId: currentUserId,
+        },
+      });
     }
 
     setLikeLoading(false);

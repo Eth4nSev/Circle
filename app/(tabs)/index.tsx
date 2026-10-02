@@ -44,7 +44,8 @@ export default function Index() {
 		const { data, error } = await supabase
 			.from("follows")
 			.select("following_id")
-			.eq("follower_id", userId);
+			.eq("follower_id", userId)
+			.eq("status", "accepted");
 
 		if (error) {
 			console.error("Error fetching follows:", error);
@@ -338,6 +339,19 @@ export default function Index() {
 							marginRight: 10,
 						}}
 					>
+						<Pressable onPress={() => router.push("/notifications")}>
+							<GlassView
+								style={styles.glassButtonMini}
+								isInteractive
+							>
+								<Ionicons
+									name="notifications-outline"
+									size={27}
+									color={colors.text}
+								/>
+							</GlassView>
+						</Pressable>
+
 						<Pressable onPress={() => router.push("/newPost")}>
 							<GlassView
 								style={styles.glassButtonMini}

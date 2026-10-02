@@ -18,6 +18,7 @@ import {
 	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
+import { sendNotification } from "./utils/notifications";
 
 type Friend = {
 	id: string;
@@ -89,7 +90,8 @@ export default function CircleInvites() {
 		const { data: following, error: followingError } = await supabase
 			.from("follows")
 			.select("following_id")
-			.eq("follower_id", user.id);
+			.eq("follower_id", user.id)
+			.eq("status", "accepted");
 
 		if (followingError) {
 			console.error("Error loading following:", followingError);
@@ -102,7 +104,8 @@ export default function CircleInvites() {
 		const { data: followers, error: followersError } = await supabase
 			.from("follows")
 			.select("follower_id")
-			.eq("following_id", user.id);
+			.eq("following_id", user.id)
+			.eq("status", "accepted");
 
 		if (followersError) {
 			console.error("Error loading followers:", followersError);
@@ -178,9 +181,10 @@ export default function CircleInvites() {
 			status: "pending",
 		}));
 
-		const { error } = await supabase
+		const { data: createdInvitations, error } = await supabase
 			.from("circle_invitations")
-			.insert(invitations);
+			.insert(invitations)
+			.select("id, invitee_id");
 
 		if (error) {
 			console.error("Error sending Circle invites:", error);
@@ -189,6 +193,17 @@ export default function CircleInvites() {
 
 			setInviting(false);
 			return;
+		}
+
+		for (const invitation of createdInvitations ?? []) {
+			await sendNotification({
+				recipientId: invitation.invitee_id,
+				type: "circle_invite",
+				data: {
+					invitationId: invitation.id,
+					inviterId: user.id,
+				},
+			});
 		}
 
 		Alert.alert(

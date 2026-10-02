@@ -54,6 +54,7 @@ export default function Followers() {
 				.from("follows")
 				.select("follower_id")
 				.eq("following_id", user.id)
+				.eq("status", "accepted")
 				.order("created_at", { ascending: false });
 
 			if (followError) {

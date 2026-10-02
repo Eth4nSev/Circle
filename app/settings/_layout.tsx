@@ -54,6 +54,15 @@ export default function settingsLayout() {
         }}
       />
       <Stack.Screen
+        name="notifications"
+        options={{
+          headerTransparent: true,
+          headerTitle: "Notifications",
+          headerBackButtonDisplayMode: "minimal",
+          headerTitleStyle: { color: colors.text },
+        }}
+      />
+      <Stack.Screen
         name="circlesSettings"
         options={{
           headerTransparent: true,

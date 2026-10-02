@@ -53,7 +53,7 @@ export default function ProfileScreen() {
 
 			const { data: profile, error: profileError } = await supabase
 				.from("profiles")
-				.select("avatar_url, display_name, username")
+				.select("avatar_url, display_name, username, account_type")
 				.eq("id", user.id)
 				.single();
 
@@ -80,7 +80,8 @@ export default function ProfileScreen() {
 			const { count: followers, error: followersError } = await supabase
 				.from("follows")
 				.select("*", { count: "exact", head: true })
-				.eq("following_id", user.id);
+				.eq("following_id", user.id)
+				.eq("status", "accepted");
 
 			if (followersError) {
 				console.error("Error fetching followers:", followersError);
@@ -91,7 +92,8 @@ export default function ProfileScreen() {
 			const { count: following, error: followingError } = await supabase
 				.from("follows")
 				.select("*", { count: "exact", head: true })
-				.eq("follower_id", user.id);
+				.eq("follower_id", user.id)
+				.eq("status", "accepted");
 
 			if (followingError) {
 				console.error("Error fetching following:", followingError);

@@ -20,6 +20,7 @@ import {
 	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
+import { sendNotification } from "./utils/notifications";
 
 const circleColors = [
 	"#17b3da",
@@ -75,7 +76,8 @@ export default function CreateCircle() {
 			const { data: following, error: followingError } = await supabase
 				.from("follows")
 				.select("following_id")
-				.eq("follower_id", user.id);
+				.eq("follower_id", user.id)
+				.eq("status", "accepted");
 
 			if (followingError) {
 				console.error(followingError);
@@ -86,7 +88,8 @@ export default function CreateCircle() {
 			const { data: followers, error: followersError } = await supabase
 				.from("follows")
 				.select("follower_id")
-				.eq("following_id", user.id);
+				.eq("following_id", user.id)
+				.eq("status", "accepted");
 
 			if (followersError) {
 				console.error(followersError);
@@ -204,9 +207,11 @@ export default function CreateCircle() {
 					status: "pending",
 				}));
 
-				const { error: invitationError } = await supabase
-					.from("circle_invitations")
-					.insert(invitations);
+				const { data: createdInvitations, error: invitationError } =
+					await supabase
+						.from("circle_invitations")
+						.insert(invitations)
+						.select("id, invitee_id");
 
 				if (invitationError) {
 					console.error(invitationError);
@@ -221,6 +226,17 @@ export default function CreateCircle() {
 					Alert.alert("Creation Failed", invitationError.message);
 
 					return;
+				}
+
+				for (const invitation of createdInvitations ?? []) {
+					await sendNotification({
+						recipientId: invitation.invitee_id,
+						type: "circle_invite",
+						data: {
+							invitationId: invitation.id,
+							inviterId: user.id,
+						},
+					});
 				}
 			}
 

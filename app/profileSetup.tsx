@@ -178,12 +178,7 @@ export default function profileSetup() {
 				avatarUrl = publicUrl.publicUrl;
 			}
 
-			const profileData = {
-				id: user.id,
-				display_name: displayName.trim(),
-				username: username.trim(),
-				avatar_url: avatarUrl,
-			};
+	
 
 			console.log("INSERTING PROFILE:", profileData);
 

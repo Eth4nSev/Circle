@@ -3,12 +3,20 @@ import Constants from "expo-constants";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { router, Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import { useColorScheme } from "react-native";
 import { AccentProvider } from "./context/accent";
 import OutageScreen from "./outage";
 import UpdateRequiredScreen from "./updateRequired";
 import { supabase } from "./utils/supabase";
+import {
+  configureNotifications,
+  loadNotificationPreferences,
+  saveIncomingNotification,
+  syncPresentedNotifications,
+  syncPushNotifications,
+} from "./utils/notifications";
 
 SplashScreen.setOptions({
   duration: 1000,
@@ -47,6 +55,27 @@ export default function RootLayout() {
   const [requiredVersion, setRequiredVersion] = useState("0.0.0");
 
   const betaOpened = useRef(false);
+
+  useEffect(() => {
+    configureNotifications();
+    syncPresentedNotifications();
+
+    const notificationListener =
+      Notifications.addNotificationReceivedListener((notification) => {
+        saveIncomingNotification(notification);
+      });
+
+    const responseListener =
+      Notifications.addNotificationResponseReceivedListener(async (response) => {
+        await saveIncomingNotification(response.notification);
+        router.push("/notifications");
+      });
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const checkAppConfig = async () => {
@@ -143,7 +172,7 @@ export default function RootLayout() {
 
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("id, updated")
+        .select("id, updated, account_type")
         .eq("id", session.user.id)
         .maybeSingle();
 
@@ -160,6 +189,7 @@ export default function RootLayout() {
       const inAuthGroup = segments[0] === "login" || segments[0] === "signup";
 
       const inProfileSetup = segments[0] === "profileSetup";
+      const inAccountType = segments[0] === "accountType";
       const inBetaWelcome = String(segments[0]) === "betaWelcome";
 
       if (!hasProfile) {
@@ -173,11 +203,29 @@ export default function RootLayout() {
         return;
       }
 
-      if (inAuthGroup || inProfileSetup) {
+      if (!profile.account_type) {
+        betaOpened.current = false;
+
+        if (!inAccountType) {
+          router.replace("/accountType");
+        }
+
+        setCheckingProfile(false);
+        return;
+      }
+
+      if (inAuthGroup || inProfileSetup || inAccountType) {
         router.replace("/");
         setCheckingProfile(false);
         return;
       }
+
+      syncPushNotifications(
+        session.user.id,
+        await loadNotificationPreferences(),
+      ).catch((error) => {
+        console.error("Failed to register push notifications:", error);
+      });
 
       if (profile.updated === true && !betaOpened.current && !inBetaWelcome) {
         betaOpened.current = true;
@@ -219,6 +267,16 @@ export default function RootLayout() {
           headerTransparent: true,
         }}
       >
+        <Stack.Screen
+          name="accountType"
+          options={{ gestureEnabled: false }}
+        />
+
+        <Stack.Screen
+          name="notifications"
+          options={{ presentation: "card" }}
+        />
+
         <Stack.Screen
           name="emojiReact"
           options={{

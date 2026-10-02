@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import { useAccent } from "./context/accent";
+import { sendNotification } from "./utils/notifications";
 
 type Message = {
 	id: string;
@@ -136,14 +137,27 @@ export default function DM() {
 		setSending(true);
 		setMessage("");
 
-		const { error } = await supabase.from("direct_messages").insert({
-			sender_id: currentUserId,
-			receiver_id: userId,
-			content,
-		});
+		const { data, error } = await supabase
+			.from("direct_messages")
+			.insert({
+				sender_id: currentUserId,
+				receiver_id: userId,
+				content,
+			})
+			.select("id")
+			.single();
 
 		if (error) {
 			setMessage(content);
+		} else if (data) {
+			await sendNotification({
+				recipientId: userId,
+				type: "direct_message",
+				data: {
+					messageId: data.id,
+					senderId: currentUserId,
+				},
+			});
 		}
 
 		setSending(false);

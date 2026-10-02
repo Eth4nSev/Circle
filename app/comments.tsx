@@ -21,6 +21,7 @@ import {
 	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
+import { sendNotification } from "./utils/notifications";
 
 type CommentProfile = {
 	username: string;
@@ -130,6 +131,24 @@ export default function Comments() {
 		}
 
 		if (data) {
+			const { data: post } = await supabase
+				.from("posts")
+				.select("user_id")
+				.eq("id", postId)
+				.single();
+
+			if (post?.user_id && post.user_id !== userId) {
+				await sendNotification({
+					recipientId: post.user_id,
+					type: "comment",
+					data: {
+						commentId: data.id,
+						postId,
+						actorId: userId,
+					},
+				});
+			}
+
 			const { data: profile } = await supabase
 				.from("profiles")
 				.select("username, display_name, avatar_url")

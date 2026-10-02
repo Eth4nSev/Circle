@@ -4,6 +4,7 @@ import PostContainer from "@/components/post";
 import SupabaseImage from "@/components/SupabaseImage";
 import { fetchPostPage, type FeedPost } from "./utils/postFeed";
 import { getCurrentUser } from "./utils/auth";
+import { sendNotification } from "./utils/notifications";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
@@ -34,10 +35,11 @@ export default function ProfileScreen() {
 	const [profileImage, setProfileImage] = useState<string | null>(null);
 	const [displayName, setDisplayName] = useState("Display Name");
 	const [username, setUsername] = useState("username");
-
+	const [accountType, setAccountType] = useState<"public" | "private" | null>(null);
 	const [followerCount, setFollowerCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
-	const [isFollowing, setIsFollowing] = useState(false);
+	const [followStatus, setFollowStatus] = useState<"none" | "pending" | "accepted">("none");
+	const [isMutual, setIsMutual] = useState(false);
 	const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
 	const [refreshing, setRefreshing] = useState(false);
@@ -50,7 +52,6 @@ export default function ProfileScreen() {
 			if (!userId) return;
 
 			const user = await getCurrentUser();
-
 			if (!user) {
 				console.error("No signed-in user.");
 				return;
@@ -60,34 +61,33 @@ export default function ProfileScreen() {
 
 			const { data: profile, error: profileError } = await supabase
 				.from("profiles")
-				.select("id, avatar_url, display_name, username")
+				.select("id, avatar_url, display_name, username, account_type")
 				.eq("id", userId)
 				.single();
 
 			if (profileError) {
 				console.error("Error fetching profile:", profileError);
-			} else if (profile) {
-				setProfileImage(profile.avatar_url ?? null);
-				setDisplayName(profile.display_name ?? "Display Name");
-				setUsername(profile.username ?? "username");
+				return;
 			}
 
-			const result = await fetchPostPage({
-				mode: {
-					type: "user",
-					userId,
-				},
-				currentUserId: user.id,
-				page: 0,
-				pageSize: 20,
-			});
+			setProfileImage(profile.avatar_url ?? null);
+			setDisplayName(profile.display_name ?? "Display Name");
+			setUsername(profile.username ?? "username");
+			setAccountType(profile.account_type ?? null);
 
-			setPosts(result.posts);
-
-			const { count: followers, error: followersError } = await supabase
-				.from("follows")
-				.select("*", { count: "exact", head: true })
-				.eq("following_id", userId);
+			const [{ count: followers, error: followersError }, { count: following, error: followingError }] =
+				await Promise.all([
+					supabase
+						.from("follows")
+						.select("*", { count: "exact", head: true })
+						.eq("following_id", userId)
+						.eq("status", "accepted"),
+					supabase
+						.from("follows")
+						.select("*", { count: "exact", head: true })
+						.eq("follower_id", userId)
+						.eq("status", "accepted"),
+				]);
 
 			if (followersError) {
 				console.error("Error fetching followers:", followersError);
@@ -95,30 +95,60 @@ export default function ProfileScreen() {
 				setFollowerCount(followers ?? 0);
 			}
 
-			const { count: following, error: followingError } = await supabase
-				.from("follows")
-				.select("*", { count: "exact", head: true })
-				.eq("follower_id", userId);
-
 			if (followingError) {
 				console.error("Error fetching following:", followingError);
 			} else {
 				setFollowingCount(following ?? 0);
 			}
 
+			let nextFollowStatus: "none" | "pending" | "accepted" = "none";
+
 			if (user.id !== userId) {
 				const { data: follow, error: followError } = await supabase
 					.from("follows")
-					.select("follower_id")
+					.select("id, status")
 					.eq("follower_id", user.id)
 					.eq("following_id", userId)
 					.maybeSingle();
 
 				if (followError) {
 					console.error("Error checking follow status:", followError);
-				} else {
-					setIsFollowing(!!follow);
+				} else if (follow) {
+					nextFollowStatus = follow.status === "pending" ? "pending" : "accepted";
 				}
+			}
+
+			setFollowStatus(nextFollowStatus);
+
+			if (nextFollowStatus === "accepted" && user.id !== userId) {
+				const { data: reverseFollow } = await supabase
+					.from("follows")
+					.select("id")
+					.eq("follower_id", userId)
+					.eq("following_id", user.id)
+					.eq("status", "accepted")
+					.maybeSingle();
+
+				setIsMutual(!!reverseFollow);
+			} else {
+				setIsMutual(false);
+			}
+
+			const canViewPosts =
+				user.id === userId ||
+				profile.account_type === "public" ||
+				nextFollowStatus === "accepted";
+
+			if (canViewPosts) {
+				const result = await fetchPostPage({
+					mode: { type: "user", userId },
+					currentUserId: user.id,
+					page: 0,
+					pageSize: 20,
+				});
+				setPosts(result.posts);
+			} else {
+				setPosts([]);
 			}
 		} finally {
 			setRefreshing(false);
@@ -126,40 +156,76 @@ export default function ProfileScreen() {
 	}
 
 	async function toggleFollow() {
-		if (!userId || !currentUserId || currentUserId === userId) {
-			return;
-		}
+		if (!userId || !currentUserId || currentUserId === userId) return;
 
 		setFollowLoading(true);
 
 		try {
-			if (isFollowing) {
+			if (followStatus === "accepted") {
 				const { error } = await supabase
 					.from("follows")
 					.delete()
 					.eq("follower_id", currentUserId)
-					.eq("following_id", userId);
+					.eq("following_id", userId)
+					.eq("status", "accepted");
 
 				if (error) {
 					console.error("Error unfollowing user:", error);
 					return;
 				}
 
-				setIsFollowing(false);
+				setFollowStatus("none");
+				setIsMutual(false);
 				setFollowerCount((count) => Math.max(0, count - 1));
-			} else {
-				const { error } = await supabase.from("follows").insert({
-					follower_id: currentUserId,
-					following_id: userId,
-				});
+				return;
+			}
+
+			if (followStatus === "pending") {
+				const { error } = await supabase
+					.from("follows")
+					.delete()
+					.eq("follower_id", currentUserId)
+					.eq("following_id", userId)
+					.eq("status", "pending");
 
 				if (error) {
-					console.error("Error following user:", error);
+					console.error("Error cancelling follow request:", error);
 					return;
 				}
 
-				setIsFollowing(true);
+				setFollowStatus("none");
+				return;
+			}
+
+			const status = accountType === "private" ? "pending" : "accepted";
+			const { data: follow, error } = await supabase
+				.from("follows")
+				.insert({
+					follower_id: currentUserId,
+					following_id: userId,
+					status,
+				})
+				.select("id, status")
+				.single();
+
+			if (error) {
+				console.error("Error following user:", error);
+				return;
+			}
+
+			setFollowStatus(status);
+
+			if (status === "accepted") {
 				setFollowerCount((count) => count + 1);
+			} else if (follow?.id) {
+				await sendNotification({
+					recipientId: userId,
+					type: "follow_request",
+					data: {
+						followId: follow.id,
+						actorId: currentUserId,
+					},
+				});
 			}
 		} finally {
 			setFollowLoading(false);
@@ -167,17 +233,25 @@ export default function ProfileScreen() {
 	}
 
 	function handleFollowPress() {
-		if (isFollowing) {
+		if (followStatus === "accepted") {
 			Alert.alert(
 				"Unfollow user?",
 				`Are you sure you want to unfollow ${displayName}?`,
 				[
 					{ text: "Cancel", style: "cancel" },
-					{
-						text: "Unfollow",
-						style: "destructive",
-						onPress: toggleFollow,
-					},
+					{ text: "Unfollow", style: "destructive", onPress: toggleFollow },
+				],
+			);
+			return;
+		}
+
+		if (followStatus === "pending") {
+			Alert.alert(
+				"Cancel follow request?",
+				`Your request to follow ${displayName} will be removed.`,
+				[
+					{ text: "Keep Request", style: "cancel" },
+					{ text: "Cancel Request", style: "destructive", onPress: toggleFollow },
 				],
 			);
 			return;
@@ -190,47 +264,9 @@ export default function ProfileScreen() {
 		refreshData();
 	}, [userId]);
 
-	const [isMutual, setIsMutual] = useState(false);
-
-	useEffect(() => {
-		const checkMutualFollow = async () => {
-			if (!userId || !currentUserId || userId === currentUserId) {
-				setIsMutual(false);
-				return;
-			}
-
-			const { data, error } = await supabase
-				.from("follows")
-				.select("follower_id, following_id")
-				.or(
-					`and(follower_id.eq.${currentUserId},following_id.eq.${userId}),and(follower_id.eq.${userId},following_id.eq.${currentUserId})`,
-				);
-
-			if (error) {
-				console.error("Error checking mutual follow:", error);
-				setIsMutual(false);
-				return;
-			}
-
-			const followingThem = data?.some(
-				(follow) =>
-					follow.follower_id === currentUserId &&
-					follow.following_id === userId,
-			);
-
-			const followingYou = data?.some(
-				(follow) =>
-					follow.follower_id === userId &&
-					follow.following_id === currentUserId,
-			);
-
-			setIsMutual(!!followingThem && !!followingYou);
-		};
-
-		checkMutualFollow();
-	}, [userId, currentUserId]);
-
 	const isOwnProfile = currentUserId === userId;
+	const canViewPosts =
+		isOwnProfile || accountType === "public" || followStatus === "accepted";
 
 	return (
 		<>
@@ -494,7 +530,10 @@ export default function ProfileScreen() {
 							>
 								<GlassView
 									tintColor={
-										isFollowing ? colors.separator : accent
+										followStatus === "accepted" ||
+										followStatus === "pending"
+											? colors.separator
+											: accent
 									}
 									style={styles.followButton}
 									isInteractive
@@ -502,15 +541,20 @@ export default function ProfileScreen() {
 									<Ionicons
 										name="person-add"
 										color={
-											isFollowing ? colors.text : "#fff"
-										}
+												followStatus === "accepted" ||
+												followStatus === "pending"
+													? colors.text
+													: "#fff"
+											}
 										size={17}
 									/>
 									<Text
 										style={[
 											styles.followButtonText,
 											{
-												color: isFollowing
+												color:
+												followStatus === "accepted" ||
+												followStatus === "pending"
 													? colors.text
 													: "#fff",
 											},
@@ -521,8 +565,10 @@ export default function ProfileScreen() {
 												size="small"
 												color="#fff"
 											/>
-										) : isFollowing ? (
+										) : followStatus === "accepted" ? (
 											"Following"
+										) : followStatus === "pending" ? (
+											"Requested"
 										) : (
 											"Follow"
 										)}
@@ -572,33 +618,48 @@ export default function ProfileScreen() {
 						<Text
 							style={[
 								styles.sectionTitle,
-								{
-									color: colors.text,
-								},
+								{ color: colors.text },
 							]}
 						>
 							Posts
 						</Text>
 
-						{posts.map((post) => (
-							<PostContainer
-								key={post.id}
-								userId={post.user_id}
-								id={post.id}
-								time={post.created_at}
-								href={post.image ?? ""}
-								caption={post.caption}
-								profile={post.profiles}
-								postSettings={{
-									allow_comments: post.allow_comments,
-									allow_sharing: post.allow_sharing,
-									allow_reactions: post.allow_reactions,
-								}}
-								likeCount={post.like_count}
-								isLiked={post.is_liked}
-								currentUserId={currentUserId ?? ""}
-							/>
-						))}
+						{!canViewPosts && accountType === "private" ? (
+							<View style={styles.privatePosts}>
+								<MaterialIcons
+									name="lock-outline"
+									size={42}
+									color={colors.secondary}
+								/>
+								<Text style={[styles.privatePostsTitle, { color: colors.text }]}>
+									This account is private
+								</Text>
+								<Text style={[styles.privatePostsText, { color: colors.secondary }]}>
+									Follow this account and get approved to see their posts.
+								</Text>
+							</View>
+						) : (
+							posts.map((post) => (
+								<PostContainer
+									key={post.id}
+									userId={post.user_id}
+									id={post.id}
+									time={post.created_at}
+									href={post.image ?? ""}
+									caption={post.caption}
+									profile={post.profiles}
+									postSettings={{
+										allow_comments: post.allow_comments,
+										allow_sharing: post.allow_sharing,
+										allow_reactions: post.allow_reactions,
+									}}
+									likeCount={post.like_count}
+									isLiked={post.is_liked}
+									currentUserId={currentUserId ?? ""}
+								/>
+							))
+						)}
+					</View>
 					</View>
 				</ScrollView>
 			</View>
@@ -744,6 +805,28 @@ const styles = StyleSheet.create({
 		fontWeight: "700",
 		marginBottom: 12,
 		marginHorizontal: 16,
+	},
+
+	privatePosts: {
+		minHeight: 220,
+		marginHorizontal: 16,
+		borderRadius: 22,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingHorizontal: 28,
+	},
+
+	privatePostsTitle: {
+		fontSize: 18,
+		fontWeight: "700",
+		marginTop: 12,
+	},
+
+	privatePostsText: {
+		fontSize: 14,
+		lineHeight: 20,
+		textAlign: "center",
+		marginTop: 5,
 	},
 
 	followButtonContainer: {

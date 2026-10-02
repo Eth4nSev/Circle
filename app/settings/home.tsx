@@ -68,7 +68,7 @@ export default function Index() {
       </SettingsContainer>
 
       <SettingsContainer>
-        <SettingsLink href="" title="Notifications" />
+        <SettingsLink href="/settings/notifications" title="Notifications" />
         <SettingsLink href="/settings/circlesSettings" title="Circles" />
       </SettingsContainer>
 
