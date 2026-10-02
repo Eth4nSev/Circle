@@ -3,6 +3,7 @@ import Back from "@/components/Back";
 import PostContainer from "@/components/post";
 import SupabaseImage from "@/components/SupabaseImage";
 import { fetchPostPage, type FeedPost } from "./utils/postFeed";
+import { getCurrentUser } from "./utils/auth";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
@@ -48,13 +49,10 @@ export default function ProfileScreen() {
 		try {
 			if (!userId) return;
 
-			const {
-				data: { user },
-				error: userError,
-			} = await supabase.auth.getUser();
+			const user = await getCurrentUser();
 
-			if (userError || !user) {
-				console.error("Error fetching current user:", userError);
+			if (!user) {
+				console.error("No signed-in user.");
 				return;
 			}
 
@@ -588,8 +586,17 @@ export default function ProfileScreen() {
 								userId={post.user_id}
 								id={post.id}
 								time={post.created_at}
-								href={post.image}
+								href={post.image ?? ""}
 								caption={post.caption}
+								profile={post.profiles}
+								postSettings={{
+									allow_comments: post.allow_comments,
+									allow_sharing: post.allow_sharing,
+									allow_reactions: post.allow_reactions,
+								}}
+								likeCount={post.like_count}
+								isLiked={post.is_liked}
+								currentUserId={currentUserId ?? ""}
 							/>
 						))}
 					</View>
