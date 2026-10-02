@@ -1,5 +1,5 @@
-import Constants from "expo-constants";
 import { Colors } from "@/styles/colors";
+import Constants from "expo-constants";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { router, Stack, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -65,7 +65,9 @@ export default function RootLayout() {
           return;
         }
 
-        if (error?.status === 402 || error?.status === 540) {
+        const errorStatus = (error as any)?.status;
+
+        if (errorStatus === 402 || errorStatus === 540) {
           setServerDown(true);
           return;
         }
