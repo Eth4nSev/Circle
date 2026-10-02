@@ -3,6 +3,7 @@ import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as ImagePicker from "expo-image-picker";
+import { fileUriToArrayBuffer, getStoragePathFromPublicUrl, optimizeImage } from "./utils/imageUpload";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -27,6 +28,7 @@ export default function EditProfile() {
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [profilePicture, setProfilePicture] = useState<string | null>(null);
+	const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
 	const [displayName, setDisplayName] = useState("");
 	const [username, setUsername] = useState("");
 	const [isPickingImage, setIsPickingImage] = useState(false);
@@ -60,6 +62,7 @@ export default function EditProfile() {
 		setDisplayName(data.display_name ?? "");
 		setUsername(data.username ?? "");
 		setProfilePicture(data.avatar_url ?? null);
+		setSelectedImageUri(null);
 		setLoading(false);
 	}
 
@@ -75,7 +78,15 @@ export default function EditProfile() {
 			});
 
 			if (!result.canceled && result.assets[0]?.uri) {
-				setProfilePicture(result.assets[0].uri);
+				const asset = result.assets[0];
+
+				const optimized = await optimizeImage({
+					uri: asset.uri,
+					maxWidth: 512,
+					quality: 0.8,
+				});
+
+				setSelectedImageUri(optimized.uri);
 			}
 		} finally {
 			setIsPickingImage(false);
@@ -87,34 +98,71 @@ export default function EditProfile() {
 
 		setSaving(true);
 
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
+		try {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
 
-		if (!user) {
-			setSaving(false);
-			return;
-		}
+			if (!user) return;
 
-		const cleanUsername = username.trim().toLowerCase();
+			const cleanUsername = username.trim().toLowerCase();
+			let avatarUrl = profilePicture;
 
-		const { error } = await supabase
-			.from("profiles")
-			.update({
-				display_name: displayName.trim(),
-				username: cleanUsername,
-				avatar_url: profilePicture,
-			})
-			.eq("id", user.id);
+			if (selectedImageUri) {
+				const arrayBuffer = await fileUriToArrayBuffer(selectedImageUri);
+				const filePath = `${user.id}/${Date.now()}.jpg`;
 
-		if (error) {
+				const { error: uploadError } = await supabase.storage
+					.from("profile-pictures")
+					.upload(filePath, arrayBuffer, {
+						contentType: "image/jpeg",
+						cacheControl: "86400",
+						upsert: false,
+					});
+
+				if (uploadError) {
+					throw uploadError;
+				}
+
+				const { data: publicData } = supabase.storage
+					.from("profile-pictures")
+					.getPublicUrl(filePath);
+
+				avatarUrl = publicData.publicUrl;
+
+				const oldPath = getStoragePathFromPublicUrl(
+					profilePicture,
+					"profile-pictures",
+				);
+
+				if (oldPath) {
+					await supabase.storage
+						.from("profile-pictures")
+						.remove([oldPath]);
+				}
+			}
+
+			const { error } = await supabase
+				.from("profiles")
+				.update({
+					display_name: displayName.trim(),
+					username: cleanUsername,
+					avatar_url: avatarUrl,
+				})
+				.eq("id", user.id);
+
+			if (error) {
+				throw error;
+			}
+
+			setProfilePicture(avatarUrl);
+			setSelectedImageUri(null);
+			router.back();
+		} catch (error) {
 			console.error(error);
+		} finally {
 			setSaving(false);
-			return;
 		}
-
-		setSaving(false);
-		router.back();
 	}
 
 	if (loading) {
@@ -157,9 +205,9 @@ export default function EditProfile() {
 				</View>
 
 				<View style={styles.avatarSection}>
-					{profilePicture ? (
+					{selectedImageUri || profilePicture ? (
 						<Image
-							source={{ uri: profilePicture }}
+							source={{ uri: selectedImageUri || profilePicture || "" }}
 							style={styles.profileImage}
 						/>
 					) : (
