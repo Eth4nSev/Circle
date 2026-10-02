@@ -1,3 +1,4 @@
+import SupabaseImage from "@/components/SupabaseImage";
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import { Colors } from "@/styles/colors";
@@ -321,7 +322,7 @@ export default function CircleInvites() {
 										]}
 									>
 										{friend.avatar_url ? (
-											<Image
+											<SupabaseImage
 												source={{
 													uri: friend.avatar_url,
 												}}
