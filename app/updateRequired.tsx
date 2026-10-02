@@ -1,25 +1,17 @@
 import { Colors } from "@/styles/colors";
-import { Image, Linking, Pressable, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { Image, StyleSheet, Text, useColorScheme, View } from "react-native";
 
 type UpdateRequiredProps = {
   currentVersion: string;
   requiredVersion: string;
-  updateUrl?: string | null;
 };
 
 export default function UpdateRequiredScreen({
   currentVersion,
   requiredVersion,
-  updateUrl,
 }: UpdateRequiredProps) {
   const theme = useColorScheme() ?? "dark";
   const colors = Colors[theme as "light" | "dark"];
-
-  const openUpdate = async () => {
-    if (updateUrl) {
-      await Linking.openURL(updateUrl);
-    }
-  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -47,16 +39,6 @@ export default function UpdateRequiredScreen({
         <Text style={[styles.version, { color: colors.secondary }]}>
           Version {currentVersion} · Required {requiredVersion}
         </Text>
-
-        {updateUrl && (
-          <Pressable
-            style={styles.button}
-            onPress={openUpdate}
-            accessibilityRole="button"
-          >
-            <Text style={styles.buttonText}>Update Circle</Text>
-          </Pressable>
-        )}
       </View>
     </View>
   );
@@ -103,18 +85,5 @@ const styles = StyleSheet.create({
   version: {
     fontSize: 13,
     marginTop: 16,
-  },
-  button: {
-    width: "100%",
-    marginTop: 28,
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-    backgroundColor: Colors.accent,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
   },
 });
