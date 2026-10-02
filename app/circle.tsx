@@ -57,9 +57,7 @@ export default function CircleScreen() {
     if (!id) return;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
 
       if (!user) {
         router.replace("/login");
@@ -539,7 +537,16 @@ export default function CircleScreen() {
                   id={post.id}
                   time={post.created_at}
                   href={post.image ?? ""}
-                  caption={post.caption ?? ""}
+                  caption={post.caption}
+                  profile={post.profiles}
+                  postSettings={{
+                    allow_comments: post.allow_comments,
+                    allow_sharing: post.allow_sharing,
+                    allow_reactions: post.allow_reactions,
+                  }}
+                  likeCount={post.like_count}
+                  isLiked={post.is_liked}
+                  currentUserId={user.id}
                 />
               ))
             )}
