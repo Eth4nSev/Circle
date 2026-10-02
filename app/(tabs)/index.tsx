@@ -8,9 +8,11 @@ import { GlassContainer, GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-	Animated,
+	NativeScrollEvent,
+	NativeSyntheticEvent,
 	Pressable,
 	RefreshControl,
+	ScrollView,
 	StyleSheet,
 	Text,
 	useColorScheme,
@@ -155,29 +157,6 @@ export default function Index() {
 
 		return Math.max(100, estimatedTextWidth + 40);
 	}, [selectedCircleName]);
-
-	async function getCircles() {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return;
-
-		const { data, error } = await supabase
-			.from("circle_members")
-			.select("circle_id, circles(id, name)")
-			.eq("user_id", user.id);
-
-		if (error) {
-			console.error("Error fetching circles:", error);
-		} else {
-			setCircles(
-				(data ?? [])
-					.map((membership) => membership.circles)
-					.filter(Boolean),
-			);
-		}
-	}
 
 	function toggleCircle(circleId: string, circleName: string) {
 		const isSelected = selectedCircles.includes(circleId);
@@ -414,8 +393,17 @@ export default function Index() {
 							userId={post.user_id}
 							id={post.id}
 							time={post.created_at}
-							href={post.image}
+							href={post.image ?? ""}
 							caption={post.caption}
+							profile={post.profiles}
+							postSettings={{
+								allow_comments: post.allow_comments,
+								allow_sharing: post.allow_sharing,
+								allow_reactions: post.allow_reactions,
+							}}
+							likeCount={post.like_count}
+							isLiked={post.is_liked}
+							currentUserId={post.user_id}
 						/>
 					))
 				)}
