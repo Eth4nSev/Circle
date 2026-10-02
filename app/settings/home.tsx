@@ -60,29 +60,29 @@ export default function Index() {
 					title="Account"
 					selectedValue={displayName}
 				/>
-				<SettingsLink
+				{/* <SettingsLink
 					href="/settings/privacy-security"
 					title="Privacy & Security"
-				/>
+				/> */}
 				<SettingsLink href="/settings/appearance" title="Appearance" />
 			</SettingsContainer>
 
 			<SettingsContainer>
-				<SettingsLink href="" title="Notifications" />
-				<SettingsLink
+				{/* <SettingsLink href="" title="Notifications" /> */}
+				{/* <SettingsLink
 					href="/settings/circlesSettings"
 					title="Circles"
-				/>
+				/> */}
 			</SettingsContainer>
 
-			<SettingsContainer>
+			{/* <SettingsContainer>
 				<SettingsLink
 					href="/subscriptions"
 					title="Subscriptions"
 					selectedValue="Free Plan"
 				/>
 				<SettingsLink href="" title="Support Circle" type="external" />
-			</SettingsContainer>
+			</SettingsContainer> */}
 
 			<SettingsContainer>
 				<SettingsItem title="Version" subtitle={AppData.version} />
