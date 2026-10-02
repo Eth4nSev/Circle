@@ -81,6 +81,15 @@ export default function PostContainer({
   time,
   href,
   caption,
+  profile: initialProfile = null,
+  postSettings: initialPostSettings = {
+    allow_comments: true,
+    allow_sharing: true,
+    allow_reactions: true,
+  },
+  likeCount: initialLikeCount = 0,
+  isLiked: initialIsLiked = false,
+  currentUserId,
   onDeleted,
 }: Props) {
   const theme = useColorScheme() ?? "light";
