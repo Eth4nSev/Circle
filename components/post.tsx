@@ -342,16 +342,7 @@ export default function PostContainer({
             </Text>
           </Pressable>
 
-          <Image
-            source={{ uri: href }}
-            style={[
-              styles.postImage,
-              {
-                aspectRatio: postImageAspectRatio,
-              },
-            ]}
-            resizeMode="contain"
-            onLoad={(ev          <SupabaseImage
+          <SupabaseImage
             source={href}
             style={[
               styles.postImage,
