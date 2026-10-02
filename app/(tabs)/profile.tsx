@@ -31,6 +31,7 @@ export default function ProfileScreen() {
 
 	const [followerCount, setFollowerCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
+	const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
 	const [refreshing, setRefreshing] = useState(false);
 
@@ -47,6 +48,8 @@ export default function ProfileScreen() {
 				console.error("Error fetching auth user:", userError);
 				return;
 			}
+
+			setCurrentUserId(user.id);
 
 			const { data: profile, error: profileError } = await supabase
 				.from("profiles")
@@ -327,7 +330,7 @@ export default function ProfileScreen() {
 							Posts
 						</Text>
 
-						{posts.map((post) => (
+						{currentUserId && posts.map((post) => (
 							<PostContainer
 								key={post.id}
 								userId={post.user_id}
@@ -343,7 +346,7 @@ export default function ProfileScreen() {
 								}}
 								likeCount={post.like_count}
 								isLiked={post.is_liked}
-								currentUserId={user.id}
+								currentUserId={currentUserId}
 							/>
 						))}
 					</View>
