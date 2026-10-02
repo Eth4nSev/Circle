@@ -25,6 +25,7 @@ export default function Index() {
 	const colors = Colors[theme as "light" | "dark"];
 
 	const [posts, setPosts] = useState<FeedPost[]>([]);
+	const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 	const [circles, setCircles] = useState<any[]>([]);
 	const [refreshing, setRefreshing] = useState(false);
 	const [loadingMore, setLoadingMore] = useState(false);
@@ -92,10 +93,13 @@ export default function Index() {
 			const user = await getCurrentUser();
 
 			if (!user) {
+				setCurrentUserId(null);
 				setPosts([]);
 				setHasMore(false);
 				return;
 			}
+
+			setCurrentUserId(user.id);
 
 			let mode;
 
@@ -403,7 +407,7 @@ export default function Index() {
 							}}
 							likeCount={post.like_count}
 							isLiked={post.is_liked}
-							currentUserId={post.user_id}
+							currentUserId={currentUserId ?? ""}
 						/>
 					))
 				)}
