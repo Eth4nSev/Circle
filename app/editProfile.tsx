@@ -1,4 +1,5 @@
 import { supabase } from "@/app/utils/supabase";
+import { getCurrentUser } from "./utils/auth";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
