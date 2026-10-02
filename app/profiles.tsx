@@ -1,6 +1,8 @@
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import PostContainer from "@/components/post";
+import SupabaseImage from "@/components/SupabaseImage";
+import { fetchPostPage, type FeedPost } from "./utils/postFeed";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
@@ -27,7 +29,7 @@ export default function ProfileScreen() {
 	const { accent } = useAccent();
 	const { id: userId } = useLocalSearchParams<{ id: string }>();
 
-	const [posts, setPosts] = useState<any[]>([]);
+	const [posts, setPosts] = useState<FeedPost[]>([]);
 	const [profileImage, setProfileImage] = useState<string | null>(null);
 	const [displayName, setDisplayName] = useState("Display Name");
 	const [username, setUsername] = useState("username");
@@ -72,17 +74,17 @@ export default function ProfileScreen() {
 				setUsername(profile.username ?? "username");
 			}
 
-			const { data: userPosts, error: postsError } = await supabase
-				.from("posts")
-				.select("*")
-				.eq("user_id", userId)
-				.order("created_at", { ascending: false });
+			const result = await fetchPostPage({
+				mode: {
+					type: "user",
+					userId,
+				},
+				currentUserId: user.id,
+				page: 0,
+				pageSize: 20,
+			});
 
-			if (postsError) {
-				console.error("Error fetching posts:", postsError);
-			} else {
-				setPosts(userPosts ?? []);
-			}
+			setPosts(result.posts);
 
 			const { count: followers, error: followersError } = await supabase
 				.from("follows")
@@ -310,8 +312,8 @@ export default function ProfileScreen() {
 
 				{profileImage && (
 					<>
-						<Image
-							source={{ uri: profileImage }}
+						<SupabaseImage
+							uri={profileImage}
 							blurRadius={10}
 							style={{
 								width: "100%",
