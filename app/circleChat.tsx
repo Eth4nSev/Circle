@@ -1,5 +1,6 @@
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
+import { getCurrentUser } from "./utils/auth";
 import SupabaseImage from "@/components/SupabaseImage";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -28,7 +29,7 @@ export default function CircleChat() {
 
   const loadChat = async () => {
     if (!circleId) return;
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) {
       setLoading(false);
       return;
