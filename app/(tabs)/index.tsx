@@ -1,14 +1,18 @@
 import PostContainer from "@/components/post";
+import { fetchPostPage, type FeedPost } from "../utils/postFeed";
+import { getCurrentUser } from "../utils/auth";
 import { Colors } from "@/styles/colors";
 import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassContainer, GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-	Animated,
+	NativeScrollEvent,
+	NativeSyntheticEvent,
 	Pressable,
 	RefreshControl,
+	ScrollView,
 	StyleSheet,
 	Text,
 	useColorScheme,
@@ -20,9 +24,13 @@ export default function Index() {
 	const theme = useColorScheme() ?? "light";
 	const colors = Colors[theme as "light" | "dark"];
 
-	const [posts, setPosts] = useState<any[]>([]);
+	const [posts, setPosts] = useState<FeedPost[]>([]);
+	const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 	const [circles, setCircles] = useState<any[]>([]);
 	const [refreshing, setRefreshing] = useState(false);
+	const [loadingMore, setLoadingMore] = useState(false);
+	const [page, setPage] = useState(0);
+	const [hasMore, setHasMore] = useState(true);
 
 	const [selectedCircles, setSelectedCircles] = useState<string[]>([]);
 	const [selectedFeed, setSelectedFeed] = useState<"all" | "following">(
@@ -31,122 +39,23 @@ export default function Index() {
 
 	const [selectedCircleName, setSelectedCircleName] = useState("Home");
 
-	const scrollY = useRef(new Animated.Value(0)).current;
 
-	const clampedScrollY = scrollY.interpolate({
-		inputRange: [0, 1],
-		outputRange: [0, 1],
-		extrapolateLeft: "clamp",
-	});
-
-	const translateY = Animated.diffClamp(clampedScrollY, 0, 200);
-
-	async function getPosts(
-		circleIds: string[] = selectedCircles,
-		isRefreshing = false,
-		feed: "all" | "following" = selectedFeed,
-	) {
-		if (isRefreshing) setRefreshing(true);
-
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) {
-			setPosts([]);
-			setRefreshing(false);
-			return;
-		}
-
-		const followedUserIds = await getFollowedUserIds();
-
-		let query = supabase
-			.from("posts")
-			.select("*")
-			.order("created_at", { ascending: false });
-
-		if (circleIds.length > 0) {
-			query = query.in("circle_id", circleIds);
-		} else if (feed === "following") {
-			if (followedUserIds.length === 0) {
-				setPosts([]);
-				setRefreshing(false);
-				return;
-			}
-
-			query = query.in("user_id", followedUserIds);
-		} else {
-			const { data: memberships, error: membershipError } = await supabase
-				.from("circle_members")
-				.select("circle_id")
-				.eq("user_id", user.id);
-
-			if (membershipError) {
-				console.error(
-					"Error fetching circle memberships:",
-					membershipError,
-				);
-				setPosts([]);
-				setRefreshing(false);
-				return;
-			}
-
-			const memberCircleIds = (memberships ?? []).map(
-				(membership) => membership.circle_id,
-			);
-
-			const filters = [
-				`user_id.in.(${[...new Set(followedUserIds)].join(",")})`,
-			];
-
-			if (memberCircleIds.length > 0) {
-				filters.push(`circle_id.in.(${memberCircleIds.join(",")})`);
-			}
-
-			query = query.or(filters.join(","));
-		}
-
-		const { data, error } = await query;
-
-		if (error) {
-			console.error("Error fetching posts:", error);
-		} else {
-			setPosts(data ?? []);
-		}
-
-		if (isRefreshing) setRefreshing(false);
-	}
-
-	const circleButtonWidth = useMemo(() => {
-		const estimatedTextWidth = selectedCircleName.length * 11;
-
-		return Math.max(100, estimatedTextWidth + 40);
-	}, [selectedCircleName]);
-
-	async function getFollowedUserIds() {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return [];
-
+	async function getFollowedUserIds(userId: string) {
 		const { data, error } = await supabase
 			.from("follows")
 			.select("following_id")
-			.eq("follower_id", user.id);
+			.eq("follower_id", userId);
 
 		if (error) {
 			console.error("Error fetching follows:", error);
-			return [];
+			return [userId];
 		}
 
-		return [user.id, ...(data ?? []).map((follow) => follow.following_id)];
+		return [userId, ...(data ?? []).map((follow) => follow.following_id)];
 	}
 
 	async function getCircles() {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
+		const user = await getCurrentUser();
 
 		if (!user) return;
 
@@ -166,16 +75,99 @@ export default function Index() {
 		}
 	}
 
+	async function getPosts(
+		circleIds: string[] = selectedCircles,
+		isRefreshing = false,
+		feed: "all" | "following" = selectedFeed,
+		nextPage = 0,
+		append = false,
+	) {
+		if (append) {
+			if (loadingMore || !hasMore) return;
+			setLoadingMore(true);
+		} else if (isRefreshing || nextPage === 0) {
+			setRefreshing(isRefreshing);
+		}
+
+		try {
+			const user = await getCurrentUser();
+
+			if (!user) {
+				setCurrentUserId(null);
+				setPosts([]);
+				setHasMore(false);
+				return;
+			}
+
+			setCurrentUserId(user.id);
+
+			let mode;
+
+			if (circleIds.length > 0) {
+				mode = {
+					type: "circles" as const,
+					circleIds,
+				};
+			} else if (feed === "following") {
+				const followedUserIds = await getFollowedUserIds(user.id);
+				mode = {
+					type: "following" as const,
+					userIds: followedUserIds,
+				};
+			} else {
+				const [followedUserIds, membershipResult] = await Promise.all([
+					getFollowedUserIds(user.id),
+					supabase
+						.from("circle_members")
+						.select("circle_id")
+						.eq("user_id", user.id),
+				]);
+
+				if (membershipResult.error) {
+					throw membershipResult.error;
+				}
+
+				mode = {
+					type: "home" as const,
+					followedUserIds,
+					memberCircleIds: (membershipResult.data ?? []).map(
+						(membership) => membership.circle_id,
+					),
+				};
+			}
+
+			const result = await fetchPostPage({
+				mode,
+				currentUserId: user.id,
+				page: nextPage,
+				pageSize: 20,
+			});
+
+			setPosts((current) =>
+				append ? [...current, ...result.posts] : result.posts,
+			);
+			setPage(nextPage);
+			setHasMore(result.hasMore);
+		} catch (error) {
+			console.error("Error fetching posts:", error);
+		} finally {
+			setLoadingMore(false);
+			setRefreshing(false);
+		}
+	}
+
+	const circleButtonWidth = useMemo(() => {
+		const estimatedTextWidth = selectedCircleName.length * 11;
+
+		return Math.max(100, estimatedTextWidth + 40);
+	}, [selectedCircleName]);
+
 	function toggleCircle(circleId: string, circleName: string) {
 		const isSelected = selectedCircles.includes(circleId);
 
-		let updatedCircles: string[];
-
-		if (isSelected) {
-			updatedCircles = selectedCircles.filter((id) => id !== circleId);
-		} else {
-			updatedCircles = [...selectedCircles, circleId];
-		}
+		const updatedCircles = isSelected
+			? selectedCircles.filter((id) => id !== circleId)
+			: [...selectedCircles, circleId];
 
 		setSelectedFeed("all");
 		setSelectedCircles(updatedCircles);
@@ -192,24 +184,45 @@ export default function Index() {
 			setSelectedCircleName(`${updatedCircles.length} Circles`);
 		}
 
-		getPosts(updatedCircles, false, "all");
+		getPosts(updatedCircles, false, "all", 0, false);
 	}
+
 
 	function selectAll() {
 		setSelectedFeed("all");
 		setSelectedCircles([]);
 		setSelectedCircleName("Home");
-		getPosts([], false, "all");
+		getPosts([], false, "all", 0, false);
 	}
 
 	useEffect(() => {
-		getPosts();
+		getPosts([], false, "all", 0, false);
 		getCircles();
 	}, []);
 
+	function handleScroll(
+		event: NativeSyntheticEvent<NativeScrollEvent>,
+	) {
+		const { contentOffset, contentSize, layoutMeasurement } =
+			event.nativeEvent;
+
+		if (
+			contentOffset.y + layoutMeasurement.height >=
+			contentSize.height - 800
+		) {
+			getPosts(
+				selectedCircles,
+				false,
+				selectedFeed,
+				page + 1,
+				true,
+			);
+		}
+	}
+
 	return (
 		<>
-			<Animated.ScrollView
+			<ScrollView
 				style={{
 					backgroundColor: colors.background,
 					flex: 1,
@@ -218,15 +231,14 @@ export default function Index() {
 				refreshControl={
 					<RefreshControl
 						refreshing={refreshing}
-						onRefresh={() => getPosts(selectedCircles, true)}
+						onRefresh={() =>
+					getPosts(selectedCircles, true, selectedFeed, 0, false)
+				}
 						tintColor={colors.text}
 					/>
 				}
-				onScroll={Animated.event(
-					[{ nativeEvent: { contentOffset: { y: scrollY } } }],
-					{ useNativeDriver: true },
-				)}
-				scrollEventThrottle={16}
+				onScroll={handleScroll}
+				scrollEventThrottle={250}
 			>
 				<View
 					style={{
@@ -286,7 +298,7 @@ export default function Index() {
 									setSelectedFeed("following");
 									setSelectedCircles([]);
 									setSelectedCircleName("Following");
-									getPosts([], false, "following");
+									getPosts([], false, "following", 0, false);
 								}}
 							/>
 
@@ -385,25 +397,22 @@ export default function Index() {
 							userId={post.user_id}
 							id={post.id}
 							time={post.created_at}
-							href={post.image}
+							href={post.image ?? ""}
 							caption={post.caption}
+							profile={post.profiles}
+							postSettings={{
+								allow_comments: post.allow_comments,
+								allow_sharing: post.allow_sharing,
+								allow_reactions: post.allow_reactions,
+							}}
+							likeCount={post.like_count}
+							isLiked={post.is_liked}
+							currentUserId={currentUserId ?? ""}
 						/>
 					))
 				)}
-			</Animated.ScrollView>
+			</ScrollView>
 
-			{/* <Animated.View
-				style={{
-					width: "100%",
-					justifyContent: "center",
-					alignItems: "center",
-					position: "absolute",
-					bottom: 100,
-					transform: [{ translateY: translateY }],
-				}}
-			>
-				<AddPost href="/newPost" />
-			</Animated.View> */}
 		</>
 	);
 }
@@ -429,6 +438,11 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		marginTop: 5,
 		maxWidth: 280,
+	},
+
+	loadingMore: {
+		paddingVertical: 16,
+		alignItems: "center",
 	},
 
 	glassButtonMini: {

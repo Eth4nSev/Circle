@@ -1,5 +1,8 @@
 import { supabase } from "@/app/utils/supabase";
 import PostContainer from "@/components/post";
+import SupabaseImage from "@/components/SupabaseImage";
+import { fetchPostPage, type FeedPost } from "./utils/postFeed";
+import { getCurrentUser } from "./utils/auth";
 import { Colors } from "@/styles/colors";
 import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -36,13 +39,7 @@ type CircleMember = {
   role: "admin" | "manager" | "member";
 };
 
-type Post = {
-  id: string;
-  user_id: string;
-  image: string | null;
-  caption: string | null;
-  created_at: string;
-};
+type Post = FeedPost;
 
 export default function CircleScreen() {
   const theme = useColorScheme() ?? "light";
@@ -60,9 +57,7 @@ export default function CircleScreen() {
     if (!id) return;
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
 
       if (!user) {
         router.replace("/login");
@@ -96,17 +91,17 @@ export default function CircleScreen() {
         setMembers(memberData ?? []);
       }
 
-      const { data: postData, error: postError } = await supabase
-        .from("posts")
-        .select("id, user_id, image, caption, created_at")
-        .eq("circle_id", id)
-        .order("created_at", { ascending: false });
+      const result = await fetchPostPage({
+        mode: {
+          type: "circle",
+          circleId: id,
+        },
+        currentUserId: user.id,
+        page: 0,
+        pageSize: 20,
+      });
 
-      if (postError) {
-        console.error("Error fetching Circle posts:", postError);
-      } else {
-        setPosts(postData ?? []);
-      }
+      setPosts(result.posts);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -152,9 +147,10 @@ export default function CircleScreen() {
 
     if (circle.icon_type === "photo" && circle.icon_value) {
       return (
-        <Image
-          source={{ uri: circle.icon_value }}
+        <SupabaseImage
+          uri={circle.icon_value}
           style={styles.circleIconImage}
+          contentFit="cover"
         />
       );
     }
@@ -541,7 +537,16 @@ export default function CircleScreen() {
                   id={post.id}
                   time={post.created_at}
                   href={post.image ?? ""}
-                  caption={post.caption ?? ""}
+                  caption={post.caption}
+                  profile={post.profiles}
+                  postSettings={{
+                    allow_comments: post.allow_comments,
+                    allow_sharing: post.allow_sharing,
+                    allow_reactions: post.allow_reactions,
+                  }}
+                  likeCount={post.like_count}
+                  isLiked={post.is_liked}
+                  currentUserId={user.id}
                 />
               ))
             )}

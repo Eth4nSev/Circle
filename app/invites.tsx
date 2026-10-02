@@ -1,3 +1,4 @@
+import SupabaseImage from "@/components/SupabaseImage";
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -199,7 +200,7 @@ export default function CircleInvites() {
 
     if (circle.icon_type === "photo" && circle.icon_value) {
       return (
-        <Image
+        <SupabaseImage
           source={{ uri: circle.icon_value }}
           style={styles.circleIconImage}
         />

@@ -1,8 +1,10 @@
 import { supabase } from "@/app/utils/supabase";
+import { getCurrentUser } from "./utils/auth";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as ImagePicker from "expo-image-picker";
+import { fileUriToArrayBuffer, optimizeImage } from "./utils/imageUpload";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -177,11 +179,14 @@ export default function EditPost() {
 			if (!result.canceled && result.assets[0]?.uri) {
 				const asset = result.assets[0];
 
-				setImage(asset.uri);
+				const optimized = await optimizeImage({
+					uri: asset.uri,
+					maxWidth: 1080,
+					quality: 0.78,
+				});
 
-				if (asset.width && asset.height) {
-					setImageRatio(asset.width / asset.height);
-				}
+				setImage(optimized.uri);
+				setImageRatio(optimized.width / optimized.height);
 			}
 		} catch (error) {
 			console.error("Image picker error:", error);
@@ -224,26 +229,14 @@ export default function EditPost() {
 			}
 
 			if (image !== existingPost.image) {
-				const response = await fetch(image);
-				const arrayBuffer = await response.arrayBuffer();
-
-				const extension =
-					image.split(".").pop()?.split("?")[0]?.toLowerCase() ||
-					"jpg";
-
-				const fileName = `${user.id}/${Date.now()}.${extension}`;
-
-				const contentType =
-					extension === "png"
-						? "image/png"
-						: extension === "webp"
-							? "image/webp"
-							: "image/jpeg";
+				const arrayBuffer = await fileUriToArrayBuffer(image);
+				const fileName = `${user.id}/${Date.now()}.jpg`;
 
 				const { error: uploadError } = await supabase.storage
 					.from("posts")
 					.upload(fileName, arrayBuffer, {
-						contentType,
+						contentType: "image/jpeg",
+						cacheControl: "31536000",
 						upsert: false,
 					});
 

@@ -1,3 +1,4 @@
+import SupabaseImage from "@/components/SupabaseImage";
 import { supabase } from "@/app/utils/supabase";
 import { Colors } from "@/styles/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -147,7 +148,7 @@ export default function followings() {
 						onPress={() => openProfile(item.id)}
 					>
 						{item.avatar_url ? (
-							<Image
+							<SupabaseImage
 								source={{ uri: item.avatar_url }}
 								style={styles.avatar}
 							/>

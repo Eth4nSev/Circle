@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import { fileUriToArrayBuffer, optimizeImage } from "./utils/imageUpload";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -47,8 +48,16 @@ export default function profileSetup() {
 				quality: 0.8,
 			});
 
-			if (!result.canceled) {
-				setProfileImage(result.assets[0].uri);
+			if (!result.canceled && result.assets[0]?.uri) {
+				const asset = result.assets[0];
+
+				const optimized = await optimizeImage({
+					uri: asset.uri,
+					maxWidth: 512,
+					quality: 0.8,
+				});
+
+				setProfileImage(optimized.uri);
 			}
 		} finally {
 			setIsPickingImage(false);
@@ -146,8 +155,7 @@ export default function profileSetup() {
 			let avatarUrl: string | null = null;
 
 			if (profileImage) {
-				const response = await fetch(profileImage);
-				const arrayBuffer = await response.arrayBuffer();
+				const arrayBuffer = await fileUriToArrayBuffer(profileImage);
 
 				const filePath = `${user.id}/profile.jpg`;
 
@@ -155,6 +163,7 @@ export default function profileSetup() {
 					.from("profile-pictures")
 					.upload(filePath, arrayBuffer, {
 						contentType: "image/jpeg",
+						cacheControl: "86400",
 						upsert: true,
 					});
 

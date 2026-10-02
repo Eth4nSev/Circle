@@ -1,5 +1,8 @@
 import { supabase } from "@/app/utils/supabase";
+import { getCurrentUser } from "../utils/auth";
 import PostContainer from "@/components/post";
+import SupabaseImage from "@/components/SupabaseImage";
+import { fetchPostPage, type FeedPost } from "../utils/postFeed";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
@@ -21,7 +24,7 @@ export default function ProfileScreen() {
 	const theme = useColorScheme() ?? "light";
 	const colors = Colors[theme as "light" | "dark"];
 
-	const [posts, setPosts] = useState<any[]>([]);
+	const [posts, setPosts] = useState<FeedPost[]>([]);
 	const [profileImage, setProfileImage] = useState<string | null>(null);
 	const [displayName, setDisplayName] = useState("Display Name");
 	const [username, setUsername] = useState("username");
@@ -59,17 +62,17 @@ export default function ProfileScreen() {
 				setUsername(profile.username ?? "username");
 			}
 
-			const { data: userPosts, error: postsError } = await supabase
-				.from("posts")
-				.select("*")
-				.eq("user_id", user.id)
-				.order("created_at", { ascending: false });
+			const result = await fetchPostPage({
+				mode: {
+					type: "user",
+					userId: user.id,
+				},
+				currentUserId: user.id,
+				page: 0,
+				pageSize: 20,
+			});
 
-			if (postsError) {
-				console.error("Error fetching posts:", postsError);
-			} else {
-				setPosts(userPosts ?? []);
-			}
+			setPosts(result.posts);
 
 			const { count: followers, error: followersError } = await supabase
 				.from("follows")
@@ -142,8 +145,8 @@ export default function ProfileScreen() {
 
 				{profileImage && (
 					<>
-						<Image
-							source={{ uri: profileImage }}
+						<SupabaseImage
+							uri={profileImage}
 							blurRadius={10}
 							style={{
 								width: "100%",
@@ -174,8 +177,8 @@ export default function ProfileScreen() {
 					<View style={styles.profileHeader}>
 						<View style={styles.profilePicture}>
 							{profileImage ? (
-								<Image
-									source={{ uri: profileImage }}
+								<SupabaseImage
+									uri={profileImage}
 									style={[
 										styles.profilePictureImage,
 										{
@@ -330,8 +333,17 @@ export default function ProfileScreen() {
 								userId={post.user_id}
 								id={post.id}
 								time={post.created_at}
-								href={post.image}
+								href={post.image ?? ""}
 								caption={post.caption}
+								profile={post.profiles}
+								postSettings={{
+									allow_comments: post.allow_comments,
+									allow_sharing: post.allow_sharing,
+									allow_reactions: post.allow_reactions,
+								}}
+								likeCount={post.like_count}
+								isLiked={post.is_liked}
+								currentUserId={user.id}
 							/>
 						))}
 					</View>

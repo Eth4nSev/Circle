@@ -1,5 +1,7 @@
 import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
+import { getCurrentUser } from "./utils/auth";
+import SupabaseImage from "@/components/SupabaseImage";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
@@ -51,9 +53,7 @@ export default function DM() {
 
 	useEffect(() => {
 		const loadChat = async () => {
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
+			const user = await getCurrentUser();
 
 			if (!user || !userId) {
 				setLoading(false);
@@ -74,16 +74,17 @@ export default function DM() {
 
 			const { data: messageData } = await supabase
 				.from("direct_messages")
-				.select("*")
+				.select("id, sender_id, receiver_id, content, created_at")
 				.or(
 					`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`,
 				)
 				.order("created_at", {
-					ascending: true,
-				});
+					ascending: false,
+				})
+				.limit(50);
 
 			if (messageData) {
-				setMessages(messageData);
+				setMessages([...messageData].reverse());
 			}
 
 			setLoading(false);
@@ -172,7 +173,7 @@ export default function DM() {
 			<Pressable style={styles.headerLeft}>
 				<View style={styles.avatar}>
 					{profile?.avatar_url ? (
-						<Image
+						<SupabaseImage
 							source={{ uri: profile.avatar_url }}
 							style={[
 								styles.avatarImage,
