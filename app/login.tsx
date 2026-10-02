@@ -95,7 +95,7 @@ export default function LogIn() {
 							</GlassView>
 						</Pressable>
 
-						<Pressable style={styles.forgotButton}>
+						{/* <Pressable style={styles.forgotButton}>
 							<Text
 								style={[
 									styles.forgotText,
@@ -104,7 +104,7 @@ export default function LogIn() {
 							>
 								Forgot password?
 							</Text>
-						</Pressable>
+						</Pressable> */}
 
 						<View style={styles.signupContainer}>
 							<Text
