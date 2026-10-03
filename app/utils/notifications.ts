@@ -276,16 +276,11 @@ export async function syncPushNotifications(
 
     if (!token) return;
 
-    const { error } = await supabase.from("push_tokens").upsert(
-      {
-        token,
-        user_id: userId,
-        platform: Platform.OS,
-        preferences,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "token" },
-    );
+    const { error } = await supabase.rpc("claim_push_token", {
+      p_token: token,
+      p_platform: Platform.OS,
+      p_preferences: preferences,
+    });
 
     if (error) {
       console.error("Failed to sync push token:", error);
