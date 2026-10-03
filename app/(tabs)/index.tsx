@@ -157,12 +157,6 @@ export default function Index() {
 		}
 	}
 
-	const circleButtonWidth = useMemo(() => {
-		const estimatedTextWidth = selectedCircleName.length * 11;
-
-		return Math.max(100, estimatedTextWidth + 40);
-	}, [selectedCircleName]);
-
 	function toggleCircle(circleId: string, circleName: string) {
 		const isSelected = selectedCircles.includes(circleId);
 
@@ -248,32 +242,22 @@ export default function Index() {
 						justifyContent: "space-between",
 					}}
 				>
-					<Host matchContents style={{ marginLeft: 8 }}>
+					<Host matchContents style={{ marginLeft: 16 }}>
 						<Menu
 							label={
 								<RNHostView matchContents>
-									<GlassView
+									<Text
 										style={{
-											width: circleButtonWidth,
-											height: 50,
-											paddingVertical: 5,
-											justifyContent: "center",
-											alignItems: "center",
-											margin: 10,
-											borderRadius: 50,
+											color: colors.text,
+											fontWeight: "bold",
+											fontSize: 25,
 										}}
-										isInteractive
 									>
-										<Text
-											style={{
-												color: colors.text,
-												fontWeight: "bold",
-												fontSize: 20,
-											}}
-										>
-											{selectedCircleName}
-										</Text>
-									</GlassView>
+										{selectedCircleName}
+									</Text>
+								</RNHostView>
+							}
+						>
 								</RNHostView>
 							}
 						>
