@@ -6,7 +6,7 @@ import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassContainer, GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	NativeScrollEvent,
 	NativeSyntheticEvent,
@@ -242,7 +242,7 @@ export default function Index() {
 						justifyContent: "space-between",
 					}}
 				>
-					<Host matchContents style={{ marginLeft: 16 }}>
+					<Host matchContents style={{ marginLeft: 8 }}>
 						<Menu
 							label={
 								<RNHostView matchContents>
@@ -251,77 +251,13 @@ export default function Index() {
 											color: colors.text,
 											fontWeight: "bold",
 											fontSize: 25,
+											marginLeft: 16,
 										}}
 									>
 										{selectedCircleName}
 									</Text>
 								</RNHostView>
-							}
-						>
-								</RNHostView>
-							}
-						>
-							<Button
-								systemImage={
-									selectedFeed === "all" &&
-									selectedCircles.length === 0
-										? "checkmark"
-										: "globe"
-								}
-								label="All"
-								onPress={selectAll}
-							/>
-
-							<Button
-								systemImage={
-									selectedFeed === "following"
-										? "checkmark"
-										: "person.2"
-								}
-								label="Following"
-								onPress={() => {
-									setSelectedFeed("following");
-									setSelectedCircles([]);
-									setSelectedCircleName("Following");
-									getPosts([], false, "following", 0, false);
-								}}
-							/>
-
-							<Menu systemImage="person.2.fill" label="Circles">
-								{circles.map((circle) => {
-									const isSelected = selectedCircles.includes(
-										circle.id,
-									);
-
-									return (
-										<Button
-											key={circle.id}
-											systemImage={
-												isSelected
-													? "checkmark.circle"
-													: "circle"
-											}
-											label={circle.name}
-											onPress={() =>
-												toggleCircle(
-													circle.id,
-													circle.name,
-												)
-											}
-										/>
-									);
-								})}
-							</Menu>
-						</Menu>
-					</Host>
-
-					<GlassContainer
-						spacing={10}
-						style={{
-							flexDirection: "row",
-							gap: 10,
-							marginRight: 10,
-						}}
+							}	}}
 					>
 						<Pressable onPress={() => router.push("/notifications")}>
 							<GlassView
