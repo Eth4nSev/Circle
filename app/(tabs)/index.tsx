@@ -1,12 +1,10 @@
 import PostContainer from "@/components/post";
-import { fetchPostPage, type FeedPost } from "../utils/postFeed";
-import { getCurrentUser } from "../utils/auth";
 import { Colors } from "@/styles/colors";
 import { Button, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassContainer, GlassView } from "expo-glass-effect";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	NativeScrollEvent,
 	NativeSyntheticEvent,
@@ -18,6 +16,8 @@ import {
 	useColorScheme,
 	View,
 } from "react-native";
+import { getCurrentUser } from "../utils/auth";
+import { fetchPostPage, type FeedPost } from "../utils/postFeed";
 import { supabase } from "../utils/supabase";
 
 export default function Index() {
@@ -38,7 +38,6 @@ export default function Index() {
 	);
 
 	const [selectedCircleName, setSelectedCircleName] = useState("Home");
-
 
 	async function getFollowedUserIds(userId: string) {
 		const { data, error } = await supabase
@@ -157,6 +156,12 @@ export default function Index() {
 		}
 	}
 
+	const circleButtonWidth = useMemo(() => {
+		const estimatedTextWidth = selectedCircleName.length * 11;
+
+		return Math.max(100, estimatedTextWidth + 40);
+	}, [selectedCircleName]);
+
 	function toggleCircle(circleId: string, circleName: string) {
 		const isSelected = selectedCircles.includes(circleId);
 
@@ -182,7 +187,6 @@ export default function Index() {
 		getPosts(updatedCircles, false, "all", 0, false);
 	}
 
-
 	function selectAll() {
 		setSelectedFeed("all");
 		setSelectedCircles([]);
@@ -195,9 +199,7 @@ export default function Index() {
 		getCircles();
 	}, []);
 
-	function handleScroll(
-		event: NativeSyntheticEvent<NativeScrollEvent>,
-	) {
+	function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
 		const { contentOffset, contentSize, layoutMeasurement } =
 			event.nativeEvent;
 
@@ -205,13 +207,7 @@ export default function Index() {
 			contentOffset.y + layoutMeasurement.height >=
 			contentSize.height - 800
 		) {
-			getPosts(
-				selectedCircles,
-				false,
-				selectedFeed,
-				page + 1,
-				true,
-			);
+			getPosts(selectedCircles, false, selectedFeed, page + 1, true);
 		}
 	}
 
@@ -227,8 +223,14 @@ export default function Index() {
 					<RefreshControl
 						refreshing={refreshing}
 						onRefresh={() =>
-					getPosts(selectedCircles, true, selectedFeed, 0, false)
-				}
+							getPosts(
+								selectedCircles,
+								true,
+								selectedFeed,
+								0,
+								false,
+							)
+						}
 						tintColor={colors.text}
 					/>
 				}
@@ -246,20 +248,96 @@ export default function Index() {
 						<Menu
 							label={
 								<RNHostView matchContents>
-									<Text
+									<GlassView
 										style={{
-											color: colors.text,
-											fontWeight: "bold",
-											fontSize: 25,
-											marginLeft: 16,
+											width: circleButtonWidth,
+											height: 50,
+											paddingVertical: 5,
+											justifyContent: "center",
+											alignItems: "center",
+											margin: 10,
+											borderRadius: 50,
 										}}
+										isInteractive
 									>
-										{selectedCircleName}
-									</Text>
+										<Text
+											style={{
+												color: colors.text,
+												fontWeight: "bold",
+												fontSize: 20,
+											}}
+										>
+											{selectedCircleName}
+										</Text>
+									</GlassView>
 								</RNHostView>
-							}	}}
+							}
+						>
+							<Button
+								systemImage={
+									selectedFeed === "all" &&
+									selectedCircles.length === 0
+										? "checkmark"
+										: "globe"
+								}
+								label="All"
+								onPress={selectAll}
+							/>
+
+							<Button
+								systemImage={
+									selectedFeed === "following"
+										? "checkmark"
+										: "person.2"
+								}
+								label="Following"
+								onPress={() => {
+									setSelectedFeed("following");
+									setSelectedCircles([]);
+									setSelectedCircleName("Following");
+									getPosts([], false, "following", 0, false);
+								}}
+							/>
+
+							<Menu systemImage="person.2.fill" label="Circles">
+								{circles.map((circle) => {
+									const isSelected = selectedCircles.includes(
+										circle.id,
+									);
+
+									return (
+										<Button
+											key={circle.id}
+											systemImage={
+												isSelected
+													? "checkmark.circle"
+													: "circle"
+											}
+											label={circle.name}
+											onPress={() =>
+												toggleCircle(
+													circle.id,
+													circle.name,
+												)
+											}
+										/>
+									);
+								})}
+							</Menu>
+						</Menu>
+					</Host>
+
+					<GlassContainer
+						spacing={10}
+						style={{
+							flexDirection: "row",
+							gap: 10,
+							marginRight: 10,
+						}}
 					>
-						<Pressable onPress={() => router.push("/notifications")}>
+						<Pressable
+							onPress={() => router.push("/notifications")}
+						>
 							<GlassView
 								style={styles.glassButtonMini}
 								isInteractive
@@ -346,7 +424,6 @@ export default function Index() {
 					))
 				)}
 			</ScrollView>
-
 		</>
 	);
 }

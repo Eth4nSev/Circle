@@ -2,9 +2,6 @@ import { supabase } from "@/app/utils/supabase";
 import Back from "@/components/Back";
 import PostContainer from "@/components/post";
 import SupabaseImage from "@/components/SupabaseImage";
-import { fetchPostPage, type FeedPost } from "./utils/postFeed";
-import { getCurrentUser } from "./utils/auth";
-import { sendNotification } from "./utils/notifications";
 import { Colors } from "@/styles/colors";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
@@ -24,6 +21,9 @@ import {
 	View,
 } from "react-native";
 import { useAccent } from "./context/accent";
+import { getCurrentUser } from "./utils/auth";
+import { sendNotification } from "./utils/notifications";
+import { fetchPostPage, type FeedPost } from "./utils/postFeed";
 
 export default function ProfileScreen() {
 	const theme = useColorScheme() ?? "light";
@@ -35,10 +35,14 @@ export default function ProfileScreen() {
 	const [profileImage, setProfileImage] = useState<string | null>(null);
 	const [displayName, setDisplayName] = useState("Display Name");
 	const [username, setUsername] = useState("username");
-	const [accountType, setAccountType] = useState<"public" | "private" | null>(null);
+	const [accountType, setAccountType] = useState<"public" | "private" | null>(
+		null,
+	);
 	const [followerCount, setFollowerCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
-	const [followStatus, setFollowStatus] = useState<"none" | "pending" | "accepted">("none");
+	const [followStatus, setFollowStatus] = useState<
+		"none" | "pending" | "accepted"
+	>("none");
 	const [isMutual, setIsMutual] = useState(false);
 	const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -75,19 +79,21 @@ export default function ProfileScreen() {
 			setUsername(profile.username ?? "username");
 			setAccountType(profile.account_type ?? null);
 
-			const [{ count: followers, error: followersError }, { count: following, error: followingError }] =
-				await Promise.all([
-					supabase
-						.from("follows")
-						.select("*", { count: "exact", head: true })
-						.eq("following_id", userId)
-						.eq("status", "accepted"),
-					supabase
-						.from("follows")
-						.select("*", { count: "exact", head: true })
-						.eq("follower_id", userId)
-						.eq("status", "accepted"),
-				]);
+			const [
+				{ count: followers, error: followersError },
+				{ count: following, error: followingError },
+			] = await Promise.all([
+				supabase
+					.from("follows")
+					.select("*", { count: "exact", head: true })
+					.eq("following_id", userId)
+					.eq("status", "accepted"),
+				supabase
+					.from("follows")
+					.select("*", { count: "exact", head: true })
+					.eq("follower_id", userId)
+					.eq("status", "accepted"),
+			]);
 
 			if (followersError) {
 				console.error("Error fetching followers:", followersError);
@@ -114,7 +120,8 @@ export default function ProfileScreen() {
 				if (followError) {
 					console.error("Error checking follow status:", followError);
 				} else if (follow) {
-					nextFollowStatus = follow.status === "pending" ? "pending" : "accepted";
+					nextFollowStatus =
+						follow.status === "pending" ? "pending" : "accepted";
 				}
 			}
 
@@ -239,7 +246,11 @@ export default function ProfileScreen() {
 				`Are you sure you want to unfollow ${displayName}?`,
 				[
 					{ text: "Cancel", style: "cancel" },
-					{ text: "Unfollow", style: "destructive", onPress: toggleFollow },
+					{
+						text: "Unfollow",
+						style: "destructive",
+						onPress: toggleFollow,
+					},
 				],
 			);
 			return;
@@ -251,7 +262,11 @@ export default function ProfileScreen() {
 				`Your request to follow ${displayName} will be removed.`,
 				[
 					{ text: "Keep Request", style: "cancel" },
-					{ text: "Cancel Request", style: "destructive", onPress: toggleFollow },
+					{
+						text: "Cancel Request",
+						style: "destructive",
+						onPress: toggleFollow,
+					},
 				],
 			);
 			return;
@@ -541,11 +556,11 @@ export default function ProfileScreen() {
 									<Ionicons
 										name="person-add"
 										color={
-												followStatus === "accepted" ||
-												followStatus === "pending"
-													? colors.text
-													: "#fff"
-											}
+											followStatus === "accepted" ||
+											followStatus === "pending"
+												? colors.text
+												: "#fff"
+										}
 										size={17}
 									/>
 									<Text
@@ -553,10 +568,11 @@ export default function ProfileScreen() {
 											styles.followButtonText,
 											{
 												color:
-												followStatus === "accepted" ||
-												followStatus === "pending"
-													? colors.text
-													: "#fff",
+													followStatus ===
+														"accepted" ||
+													followStatus === "pending"
+														? colors.text
+														: "#fff",
 											},
 										]}
 									>
@@ -631,11 +647,22 @@ export default function ProfileScreen() {
 									size={42}
 									color={colors.secondary}
 								/>
-								<Text style={[styles.privatePostsTitle, { color: colors.text }]}>
+								<Text
+									style={[
+										styles.privatePostsTitle,
+										{ color: colors.text },
+									]}
+								>
 									This account is private
 								</Text>
-								<Text style={[styles.privatePostsText, { color: colors.secondary }]}>
-									Follow this account and get approved to see their posts.
+								<Text
+									style={[
+										styles.privatePostsText,
+										{ color: colors.secondary },
+									]}
+								>
+									Follow this account and get approved to see
+									their posts.
 								</Text>
 							</View>
 						) : (
@@ -659,7 +686,6 @@ export default function ProfileScreen() {
 								/>
 							))
 						)}
-					</View>
 					</View>
 				</ScrollView>
 			</View>
