@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import { fileUriToArrayBuffer, optimizeImage } from "./utils/imageUpload";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -20,6 +19,7 @@ import {
 	useColorScheme,
 	View,
 } from "react-native";
+import { fileUriToArrayBuffer, optimizeImage } from "./utils/imageUpload";
 import { supabase } from "./utils/supabase";
 
 export default function profileSetup() {
@@ -65,10 +65,22 @@ export default function profileSetup() {
 	};
 
 	const cancelSetup = async () => {
+		const {
+			data: { user },
+			error: userError,
+		} = await supabase.auth.getUser();
+
+		if (userError || !user) {
+			await supabase.auth.signOut();
+			router.replace("/login");
+			return;
+		}
+
 		const { error } = await supabase.functions.invoke("delete-account");
 
 		if (error) {
 			console.error("Account deletion failed:", error);
+
 			Alert.alert(
 				"Couldn't cancel setup",
 				"Your account could not be deleted. Please try again.",

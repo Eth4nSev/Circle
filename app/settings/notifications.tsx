@@ -1,13 +1,7 @@
 import SettingsContainer from "@/components/settings/SettingsContainer";
 import { Colors } from "@/styles/colors";
 import { useEffect, useState } from "react";
-import {
-  ScrollView,
-  Switch,
-  Text,
-  useColorScheme,
-  View
-} from "react-native";
+import { ScrollView, Switch, Text, useColorScheme, View } from "react-native";
 import {
   loadNotificationPreferences,
   saveNotificationPreferences,
@@ -112,36 +106,6 @@ export default function NotificationsSettings() {
 			<SettingsContainer
 				title="Push Notifications"
 				subtitle="Notification history stays on this device for 30 days."
-			>
-				<View style={styles.row}>
-					<View style={styles.rowText}>
-						<Text style={[styles.title, { color: colors.text }]}>
-							Allow Notifications
-						</Text>
-						<Text
-							style={[
-								styles.subtitle,
-								{ color: colors.secondary },
-							]}
-						>
-							Control whether Circle can send push notifications.
-						</Text>
-					</View>
-
-					<Switch
-						value={preferences.pushEnabled}
-						onValueChange={(value) =>
-							updatePreference("pushEnabled", value)
-						}
-						trackColor={{ true: Colors.accent }}
-						disabled={saving}
-					/>
-				</View>
-			</SettingsContainer>
-
-			<SettingsContainer
-				title="Activity"
-				subtitle="These settings control which categories Circle sends."
 			>
 				{notificationSettings.map((item) => (
 					<View key={item.key} style={styles.row}>
