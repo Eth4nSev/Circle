@@ -6,7 +6,8 @@ type NotificationType =
   | "circle_invite"
   | "like"
   | "comment"
-  | "follow_request";
+  | "follow_request"
+  | "follow";
 
 type RequestBody = {
   recipientId?: string;
@@ -20,6 +21,7 @@ const preferenceKey: Record<NotificationType, string> = {
   like: "likes",
   comment: "comments",
   follow_request: "followRequests",
+  follow: "follows",
 };
 
 const titles: Record<NotificationType, string> = {
@@ -28,14 +30,16 @@ const titles: Record<NotificationType, string> = {
   like: "New like",
   comment: "New comment",
   follow_request: "Follow request",
+  follow: "New follower",
 };
 
-const defaultBodies: Record<NotificationType, string> = {
-  direct_message: "You received a new direct message.",
-  circle_invite: "Someone invited you to a Circle.",
-  like: "Someone liked your post.",
-  comment: "Someone commented on your post.",
-  follow_request: "Someone requested to follow you.",
+const actionBodies: Record<NotificationType, string> = {
+  direct_message: "sent you a message.",
+  circle_invite: "invited you to a Circle.",
+  like: "liked your post.",
+  comment: "commented on your post.",
+  follow_request: "requested to follow you.",
+  follow: "started following you.",
 };
 
 function json(data: unknown, status = 200) {
@@ -162,6 +166,22 @@ async function validateEvent(
         follow?.status === "pending"
       );
     }
+    case "follow": {
+      const followId = data.followId;
+      if (typeof followId !== "string") return false;
+
+      const { data: follow } = await admin
+        .from("follows")
+        .select("id, follower_id, following_id, status")
+        .eq("id", followId)
+        .maybeSingle();
+
+      return (
+        follow?.follower_id === callerId &&
+        follow?.following_id === body.recipientId &&
+        follow?.status === "accepted"
+      );
+    }
 
     default:
       return false;
@@ -220,6 +240,16 @@ Deno.serve(async (req) => {
     return json({ error: "Notification event could not be validated" }, 403);
   }
 
+  const { data: actorProfile } = await admin
+    .from("profiles")
+    .select("display_name, username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const actorName =
+    actorProfile?.display_name?.trim() ||
+    actorProfile?.username?.trim() ||
+    "Someone";
   const { data: tokenRows, error: tokenError } = await admin
     .from("push_tokens")
     .select("token, preferences")
@@ -251,10 +281,12 @@ Deno.serve(async (req) => {
     to: token,
     sound: "default",
     title: titles[body.type],
-    body: defaultBodies[body.type],
+    body: `${actorName} ${actionBodies[body.type]}`,
     data: {
-      type: body.type,
       ...(body.data ?? {}),
+      type: body.type,
+      actorId: user.id,
+      actorName,
     },
   }));
 

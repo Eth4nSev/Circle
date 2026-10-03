@@ -42,6 +42,11 @@ const notificationSettings: Array<{
 		title: "Follow Requests",
 		subtitle: "When someone requests to follow you.",
 	},
+	{
+		key: "follows",
+		title: "New Followers",
+		subtitle: "When someone starts following you.",
+	},
 ];
 
 export default function NotificationsSettings() {

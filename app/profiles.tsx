@@ -224,6 +224,17 @@ export default function ProfileScreen() {
 
 			if (status === "accepted") {
 				setFollowerCount((count) => count + 1);
+
+				if (follow?.id) {
+					await sendNotification({
+						recipientId: userId,
+						type: "follow",
+						data: {
+							followId: follow.id,
+							actorId: currentUserId,
+						},
+					});
+				}
 			} else if (follow?.id) {
 				await sendNotification({
 					recipientId: userId,

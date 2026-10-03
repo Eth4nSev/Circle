@@ -9,7 +9,8 @@ export type NotificationType =
   | "circle_invite"
   | "like"
   | "comment"
-  | "follow_request";
+  | "follow_request"
+  | "follow";
 
 export type NotificationPreferences = {
   pushEnabled: boolean;
@@ -18,6 +19,7 @@ export type NotificationPreferences = {
   likes: boolean;
   comments: boolean;
   followRequests: boolean;
+  follows: boolean;
 };
 
 export type LocalNotification = {
@@ -48,6 +50,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   likes: true,
   comments: true,
   followRequests: true,
+  follows: true,
 };
 
 const isNotificationType = (value: unknown): value is NotificationType =>
@@ -55,7 +58,8 @@ const isNotificationType = (value: unknown): value is NotificationType =>
   value === "circle_invite" ||
   value === "like" ||
   value === "comment" ||
-  value === "follow_request";
+  value === "follow_request" ||
+  value === "follow";
 
 function pruneNotifications(items: LocalNotification[]) {
   const cutoff = Date.now() - THIRTY_DAYS_MS;
@@ -119,6 +123,36 @@ export async function markNotificationRead(id: string) {
   }
 }
 
+export async function updateNotification(
+  id: string,
+  updates: Partial<Pick<LocalNotification, "type" | "title" | "body" | "data" | "read">>,
+) {
+  try {
+    const current = await loadNotifications();
+    const next = current.map((item) =>
+      item.id === id ? { ...item, ...updates } : item,
+    );
+
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(next));
+    return next;
+  } catch (error) {
+    console.error("Failed to update notification:", error);
+    return [];
+  }
+}
+
+export async function removeNotification(id: string) {
+  try {
+    const current = await loadNotifications();
+    const next = current.filter((item) => item.id !== id);
+
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(next));
+    return next;
+  } catch (error) {
+    console.error("Failed to remove notification:", error);
+    return [];
+  }
+}
 export async function loadNotificationPreferences() {
   try {
     const raw = await AsyncStorage.getItem(NOTIFICATION_PREFERENCES_KEY);

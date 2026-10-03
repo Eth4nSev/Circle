@@ -16,6 +16,8 @@ import {
 import {
   loadNotifications,
   markNotificationRead,
+  removeNotification,
+  updateNotification,
   type LocalNotification,
 } from "./utils/notifications";
 import { supabase } from "./utils/supabase";
@@ -99,8 +101,39 @@ export default function NotificationsScreen() {
         }
       }
 
-      const next = await markNotificationRead(item.id);
-      setItems(next);
+      if (accept) {
+        let actorName = actorNameFor(item);
+        const actorId = item.data.actorId;
+
+        if (!actorName && typeof actorId === "string") {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name, username")
+            .eq("id", actorId)
+            .maybeSingle();
+
+          actorName =
+            profile?.display_name?.trim() ||
+            profile?.username?.trim() ||
+            null;
+        }
+
+        const resolvedName = actorName ?? "Someone";
+        const next = await updateNotification(item.id, {
+          type: "follow",
+          title: "New follower",
+          body: `${resolvedName} started following you.`,
+          data: {
+            ...item.data,
+            actorName: resolvedName,
+          },
+          read: true,
+        });
+        setItems(next);
+      } else {
+        const next = await removeNotification(item.id);
+        setItems(next);
+      }
     } finally {
       setProcessingId(null);
     }
@@ -146,6 +179,8 @@ export default function NotificationsScreen() {
         return "chatbox-outline" as const;
       case "follow_request":
         return "person-add-outline" as const;
+      case "follow":
+        return "person-outline" as const;
     }
   }
 
@@ -161,7 +196,43 @@ export default function NotificationsScreen() {
         return "New comment";
       case "follow_request":
         return "Follow request";
+      case "follow":
+        return "New follower";
     }
+  }
+
+  function actorNameFor(item: LocalNotification) {
+    const value = item.data.actorName;
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+  }
+
+  function actionTextFor(item: LocalNotification) {
+    switch (item.type) {
+      case "direct_message":
+        return "sent you a message.";
+      case "circle_invite":
+        return "invited you to a Circle.";
+      case "like":
+        return "liked your post.";
+      case "comment":
+        return "commented on your post.";
+      case "follow_request":
+        return "requested to follow you.";
+      case "follow":
+        return "started following you.";
+    }
+  }
+
+  async function openActor(item: LocalNotification) {
+    await markRead(item.id);
+
+    const actorId = item.data.actorId;
+    if (typeof actorId !== "string") return;
+
+    router.push({
+      pathname: "/profiles",
+      params: { id: actorId },
+    });
   }
 
   function renderItem({ item }: { item: LocalNotification }) {
@@ -189,10 +260,7 @@ export default function NotificationsScreen() {
             <Ionicons name={iconFor(item)} size={23} color={colors.text} />
           </View>
 
-          <Pressable
-            style={styles.content}
-            onPress={() => openNotification(item)}
-          >
+          <View style={styles.content}>
             <View style={styles.titleRow}>
               <Text style={[styles.title, { color: colors.text }]}>
                 {titleFor(item)}
@@ -201,14 +269,27 @@ export default function NotificationsScreen() {
               {!item.read && <View style={styles.unreadDot} />}
             </View>
 
-            <Text style={[styles.body, { color: colors.secondary }]}>
-              {item.body}
-            </Text>
+            <View style={styles.bodyRow}>
+              {actorNameFor(item) ? (
+                <Pressable onPress={() => openActor(item)} hitSlop={6}>
+                  <Text style={[styles.actorName, { color: colors.accent }]}>
+                    {actorNameFor(item)}
+                  </Text>
+                </Pressable>
+              ) : null}
+
+              <Pressable
+                onPress={() => openNotification(item)}
+                style={styles.actionPressable}
+              >
+                <Text style={[styles.body, { color: colors.secondary }]}>{actorNameFor(item) ? actionTextFor(item) : item.body}</Text>
+              </Pressable>
+            </View>
 
             <Text style={[styles.date, { color: colors.secondary }]}>
               {formatDate(item.receivedAt)}
             </Text>
-          </Pressable>
+          </View>
         </View>
 
         {isFollowRequest ? (
@@ -371,10 +452,27 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent,
   },
 
+  bodyRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginTop: 4,
+  },
+
+  actorName: {
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "700",
+  },
+
+  actionPressable: {
+    marginLeft: 4,
+    maxWidth: "100%",
+  },
+
   body: {
     fontSize: 14,
     lineHeight: 19,
-    marginTop: 4,
   },
 
   date: {
